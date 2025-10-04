@@ -2,5 +2,13 @@
 name = "time_table"
 version = "0.1.0"
 edition = "2024"
+authors = ["Robert Heller <heller@deepsoft.com>"]
+license = "GPL-2.0-only"
+readme = "README.md"
+keywords = ["model-railway", "railroad", "model-railroad", "time-table"]
+categories = ["command-line-utilities"]
+repository = "https://github.com/RobertPHeller/time_table"
+documentation = "https://docs.rs/time_table"
+description = "Model Railroad Time Table generating program"
 
 [dependencies]
