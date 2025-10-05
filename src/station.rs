@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:04
-//  Last Modified : <251005.1719>
+//  Last Modified : <251005.1953>
 //
 //  Description	
 //
@@ -623,17 +623,21 @@ impl StorageTrack {
             Ok((result,pos+1))
         }
     }
+    /// General key, value iterator
     pub fn iter(&self) -> Iter<'_, TimeRange, Occupied> {
         self.occupations.iter()
     }
+    /// General mutable key, value iterator
+    pub fn iter_mut(&mut self) ->  IterMut<'_, TimeRange, Occupied> {
+        self.occupations.iter_mut()
+    }
+    /// Occupations iterator
     pub fn occupations(&self) ->  Values<'_, TimeRange, Occupied> {
         self.occupations.values()
     }
-    pub fn occupations_mut(&mut self) ->  ValuesMut<'_, TimeRange, Occupied> {
+    /// Mutable occupations iterator
+    pub fn  occupations_mut(&mut self) -> ValuesMut<'_, TimeRange, Occupied> {
         self.occupations.values_mut()
-    }
-    pub fn iter_mut(&mut self) -> IterMut<'_, TimeRange, Occupied> {
-        self.occupations.iter_mut()
     }
 }
 
