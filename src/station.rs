@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:04
-//  Last Modified : <251004.1233>
+//  Last Modified : <251004.2324>
 //
 //  Description	
 //
@@ -381,6 +381,14 @@ impl StorageTrack {
       * - to     The departure time.
       */
     pub fn UsedTimeRange(&self, from: f64, to: f64) -> bool {
+        for (tr, occ) in self.occupations.iter() {
+            if from > tr.To() {break;}
+            if to < tr.From() {continue;}
+            if tr.ContainsTime(from) ||
+               tr.ContainsTime(to) {
+                return true;
+            }
+        }
         false
     }
     /** Return occupication structure for a given time tange.
@@ -398,7 +406,15 @@ impl StorageTrack {
       * - train  The new arriving train.
       */
     pub fn UpdateStoredTrain(&mut self, from: f64, to: f64, train: String) -> Option<&Occupied>  {
-        None
+        let range = TimeRange::new(from,to);
+        match self.occupations.get(&range) {
+            None => None,
+            Some(occ) => {
+                let newOccupied = Occupied::new(train,from,to,occ.TrainNum2());
+                self.occupations.insert(range,newOccupied);
+                self.occupations.get(&range)
+            },
+        }
     }
     /** Replace a stored departure train.
       * ## Parameters:
@@ -407,7 +423,15 @@ impl StorageTrack {
       * - train  The new departing train.
       */
     pub fn UpdateStoredTrain2(&mut self, from: f64, to: f64, train: String) -> Option<&Occupied>  {
-        None
+        let range = TimeRange::new(from,to);
+        match self.occupations.get(&range) {
+            None => None,
+            Some(occ) => {
+                let newOccupied = Occupied::new(occ.TrainNum(),from,to,train);
+                self.occupations.insert(range,newOccupied);
+                self.occupations.get(&range)
+            },
+        }
     }
     /** Update a train's arrival time.
       * ## Parameters:
@@ -417,7 +441,17 @@ impl StorageTrack {
       */
     pub fn UpdateStoredTrainArrival(&mut self, from: f64, to: f64, 
                                     newArrival: f64) -> Option<&Occupied> {
-        None
+        let range = TimeRange::new(from,to);
+        match self.occupations.get(&range) {
+            None => None, 
+            Some(occ) => {
+                let newOccupied = Occupied::new(occ.TrainNum(),newArrival,range.To(),occ.TrainNum2());
+                self.occupations.remove(&range);
+                let newrange = TimeRange::new(newArrival,to);
+                self.occupations.insert(newrange,newOccupied);
+                self.occupations.get(&newrange)
+            },
+        }
     }
     /** Update a train's departure time.
       * ## Parameters:
@@ -427,7 +461,17 @@ impl StorageTrack {
       */
     pub fn UpdateStoredTrainDeparture(&mut self, from: f64, to: f64,
                                       newDeparture: f64) -> Option<&Occupied> {
-        None
+        let range = TimeRange::new(from,to);
+        match self.occupations.get(&range) {
+            None => None, 
+            Some(occ) => {
+                let newOccupied = Occupied::new(occ.TrainNum(),range.From(),newDeparture,occ.TrainNum2());
+                self.occupations.remove(&range);
+                let newrange = TimeRange::new(from,newDeparture);
+                self.occupations.insert(newrange,newOccupied);
+                self.occupations.get(&newrange)
+            },
+        }
     }
 }
 
