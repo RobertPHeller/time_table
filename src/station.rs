@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:04
-//  Last Modified : <251004.2324>
+//  Last Modified : <251005.1704>
 //
 //  Description	
 //
@@ -69,6 +69,55 @@ pub struct Occupied {
     until: f64,
 }
 
+impl fmt::Display for Occupied {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<Occupied \"{}\" {:4.2}:{:4.2} \"{}\">",
+            self.trainnum,self.from,self.until,self.trainnum2)
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum OccupiedParseError {
+    StartSyntaxError,
+    TrainnumSyntaxError,
+    FromSyntaxError,
+    UntilSyntaxError,
+    Trainnum2SyntaxError,
+    ExtraCharacters,
+}
+
+impl fmt::Display for OccupiedParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OccupiedParseError::StartSyntaxError =>
+                write!(f, "Missing '<Occupied '"),
+            OccupiedParseError::TrainnumSyntaxError =>
+                write!(f, "Missing trainnum"),
+            OccupiedParseError::FromSyntaxError =>
+                write!(f, "Missing from"),
+            OccupiedParseError::UntilSyntaxError =>
+                write!(f, "Missing until"),
+            OccupiedParseError::Trainnum2SyntaxError =>
+                write!(f, "Missing trainnum2"),
+            OccupiedParseError::ExtraCharacters =>
+                write!(f, "Extra trailing characters"),
+        }
+    }
+}
+
+impl FromStr for Occupied {
+    type Err = OccupiedParseError;
+    /// Convert from &str to Self
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        let (result,pos) = Occupied::ParseOccupied(string)?;
+        if pos == string.len() {
+            Ok(result)
+        } else {
+            Err(OccupiedParseError::ExtraCharacters)
+        }
+    }
+}
+
 impl Occupied {
     /// Constructor: record a train occupying a storage track.
     /// ## Parameters:
@@ -93,45 +142,7 @@ impl Occupied {
     pub fn From(&self) -> f64 {self.from}
     /// Return the end time.
     pub fn Until(&self) -> f64 {self.until}
-}
-
-impl fmt::Display for Occupied {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<Occupied \"{}\" {:4.2}:{:4.2} \"{}\">",
-            self.trainnum,self.from,self.until,self.trainnum2)
-    }
-}
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum OccupiedParseError {
-    StartSyntaxError,
-    TrainnumSyntaxError,
-    FromSyntaxError,
-    UntilSyntaxError,
-    Trainnum2SyntaxError,
-}
-
-impl fmt::Display for OccupiedParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            OccupiedParseError::StartSyntaxError =>
-                write!(f, "Missing '<Occupied '"),
-            OccupiedParseError::TrainnumSyntaxError =>
-                write!(f, "Missing trainnum"),
-            OccupiedParseError::FromSyntaxError =>
-                write!(f, "Missing from"),
-            OccupiedParseError::UntilSyntaxError =>
-                write!(f, "Missing until"),
-            OccupiedParseError::Trainnum2SyntaxError =>
-                write!(f, "Missing trainnum2"),
-        }
-    }
-}
-
-impl FromStr for Occupied {
-    type Err = OccupiedParseError;
-    /// Convert from &str to Self
-    fn from_str(string: &str) -> Result<Self, Self::Err> {
+    pub fn ParseOccupied(string: &str) -> Result<(Self, usize), OccupiedParseError> {
         let mut pos: usize;
         let trainnum: String;
         let trainnum2: String;
@@ -167,11 +178,16 @@ impl FromStr for Occupied {
         };
         match string[pos..].match_indices("\">").next() {
             None => return Err(OccupiedParseError::Trainnum2SyntaxError),
-            Some((n, m)) => trainnum2 = String::from(&string[pos..n+pos]),
-        }
-        Ok(Self{ trainnum: trainnum, from: from, until: until, trainnum2: trainnum2})
+            Some((n, m)) => {
+                trainnum2 = String::from(&string[pos..n+pos]);
+                pos += n + m.len();
+            },
+        };
+        Ok((Self{ trainnum: trainnum, from: from, until: until, 
+                  trainnum2: trainnum2}, pos))
     }
 }
+
 
 /// The TimeRange class implements a range of times.
 ///
@@ -214,6 +230,49 @@ impl PartialOrd for TimeRange {
 impl Eq for TimeRange { }
 
 
+impl fmt::Display for TimeRange {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<TimeRange {:4.2} {:4.2}>", self.from, self.to)
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum TimeRangeParseError {
+    StartSyntaxError,
+    FromSyntaxError,
+    ToSyntaxError,
+    ExtraCharacters,
+}
+
+impl fmt::Display for TimeRangeParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TimeRangeParseError::StartSyntaxError =>
+                write!(f, "Missing '<TimeRange '"),
+            TimeRangeParseError::FromSyntaxError =>
+                write!(f, "Missing from"),
+            TimeRangeParseError::ToSyntaxError =>
+                write!(f, "Missing to"),
+            TimeRangeParseError::ExtraCharacters =>
+                write!(f, "Extra trailing characters"),
+        }
+    }
+}
+
+
+impl FromStr for TimeRange {
+    type Err = TimeRangeParseError;
+    /// Convert from &str to Self 
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        let (result, endpos) = Self::ParseTimeRange(string)?;
+        if endpos == string.len() {
+            Ok(result)
+        } else {
+            Err(TimeRangeParseError::ExtraCharacters)
+        }
+    }
+}
+
 impl TimeRange {
     /// Construct a time range, from a start and end time.
     /// ## Parameters:
@@ -233,39 +292,7 @@ impl TimeRange {
     pub fn ContainsTime(&self, time: f64 ) -> bool {
         time >= self.from && time <= self.to
     }
-}
-
-impl fmt::Display for TimeRange {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<TimeRange {:4.2} {:4.2}>", self.from, self.to)
-    }
-}
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum TimeRangeParseError {
-    StartSyntaxError,
-    FromSyntaxError,
-    ToSyntaxError,
-}
-
-impl fmt::Display for TimeRangeParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            TimeRangeParseError::StartSyntaxError =>
-                write!(f, "Missing '<TimeRange '"),
-            TimeRangeParseError::FromSyntaxError =>
-                write!(f, "Missing from"),
-            TimeRangeParseError::ToSyntaxError =>
-                write!(f, "Missing to"),
-        }
-    }
-}
-
-
-impl FromStr for TimeRange {
-    type Err = TimeRangeParseError;
-    /// Convert from &str to Self 
-    fn from_str(string: &str) -> Result<Self, Self::Err> {
+    pub fn ParseTimeRange(string: &str) -> Result<(Self, usize), TimeRangeParseError> {
         let mut pos: usize;
         let from: f64; 
         let to: f64;
@@ -290,16 +317,19 @@ impl FromStr for TimeRange {
         }
         match string[pos..].match_indices('>').next() {
             None => return Err(TimeRangeParseError::ToSyntaxError),
-            Some((n, m)) => 
+            Some((n, m)) => {
                 to = match (string[pos..n+pos].trim()).parse::<f64>() {
                     Ok(t) => t,
                     Err(p) => return Err(TimeRangeParseError::ToSyntaxError),
-                },
+                };
+                pos += n + m.len();
+            },
             
         };
-        Ok(Self { from: from, to: to })
+        Ok((Self { from: from, to: to }, pos))
     }
 }
+
                 
 type OccupiedMap = BTreeMap<TimeRange, Occupied>;        
 
@@ -315,6 +345,60 @@ type OccupiedMap = BTreeMap<TimeRange, Occupied>;
 pub struct StorageTrack {
     name: String,
     occupations: OccupiedMap,
+}
+
+
+impl fmt::Display for StorageTrack {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<StorageTrack \"{}\" {} ",self.name,
+                self.occupations.len())?;
+        for (tr, occ) in self.occupations.iter() {
+            write!(f,"{} {} ",tr,occ)?;
+        }
+        write!(f,">")
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum StorageTrackParseError {
+    StartSyntaxError,
+    NameSyntaxError,
+    CountSyntaxError,
+    MissingTimeRangeSyntaxError,
+    MissingOccupiedSyntaxError,
+    ExtraCharacters,
+}
+
+impl fmt::Display for StorageTrackParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            StorageTrackParseError::StartSyntaxError =>
+                write!(f, "Missing '<StorageTrack '"),
+            StorageTrackParseError::NameSyntaxError =>
+                write!(f, "Missing name"),
+            StorageTrackParseError::CountSyntaxError =>
+                write!(f, "Missing occupations count"),
+            StorageTrackParseError::MissingTimeRangeSyntaxError =>
+                write!(f, "Missing time range"),
+            StorageTrackParseError::MissingOccupiedSyntaxError =>
+                write!(f, "Missing occupied"),
+            StorageTrackParseError::ExtraCharacters =>
+                write!(f, "Extra trailing characters"),
+        }
+    }
+}
+
+impl FromStr for StorageTrack {
+    type Err = StorageTrackParseError;
+    /// Convert from &str to Self
+    fn from_str(string: &str) -> Result<Self, Self::Err> { 
+        let (result,pos) = Self::ParseStorageTrack(string)?;
+        if pos == string.len() {
+            Ok(result)
+        } else {
+            Err(StorageTrackParseError::ExtraCharacters)
+        }
+    }
 }
 
 impl StorageTrack {
@@ -473,10 +557,72 @@ impl StorageTrack {
             },
         }
     }
+    pub fn ParseStorageTrack(string: &str) -> Result<(Self, usize), StorageTrackParseError> {
+        let mut pos: usize;
+        let name: String;
+        let count: usize;
+        match string.match_indices("<StorageTrack \"").next() {
+            None => return Err(StorageTrackParseError::StartSyntaxError),
+            Some((n, m)) => pos = n + m.len(),
+        };
+        match string[pos..].match_indices('"').next() {
+            None => return Err(StorageTrackParseError::NameSyntaxError),
+            Some((n, m)) => {
+                name = String::from(&string[pos..n+pos]);
+                pos += n + m.len();
+            },
+        };
+        let mut result = StorageTrack::new(name);
+        while string[pos..pos+1] == *" " || string[pos..pos+1] == *"\t" ||
+              string[pos..pos+1] == *"\n" {
+            pos += 1;
+        }
+        match string[pos..].match_indices(' ').next() {
+            None => return Err(StorageTrackParseError::CountSyntaxError),
+            Some((n, m)) => {
+                count = match (string[pos..n+pos].trim()).parse::<usize>() {
+                    Ok(c) => c,
+                    Err(p) => return Err(StorageTrackParseError::CountSyntaxError),
+                };
+                pos += n + m.len();
+            },
+        };
+        for i in 0..count {
+            while string[pos..pos+1] == *" " || string[pos..pos+1] == *"\t" ||
+                  string[pos..pos+1] == *"\n" {
+                pos += 1;
+            };
+            let timerange = match TimeRange::ParseTimeRange(&string[pos..]) {
+                Ok((t,p)) => {
+                    pos += p;
+                    t
+                },
+                Err(p) => return Err(StorageTrackParseError::MissingTimeRangeSyntaxError),
+            };
+            while string[pos..pos+1] == *" " || string[pos..pos+1] == *"\t" ||
+                  string[pos..pos+1] == *"\n" {
+                pos += 1;
+            };
+            let occupued = match Occupied::ParseOccupied(&string[pos..]) {
+                Ok((o,p)) => {
+                    pos += p;
+                    o
+                },
+                Err(p) => return Err(StorageTrackParseError::MissingOccupiedSyntaxError),
+            };
+            result.occupations.insert(timerange,occupued);
+        }
+        while string[pos..pos+1] == *" " || string[pos..pos+1] == *"\t" ||
+              string[pos..pos+1] == *"\n" {
+            pos += 1;
+        };
+        if string[pos..pos+1] != *">" {
+            Err(StorageTrackParseError::ExtraCharacters)
+        } else {
+            Ok((result,pos+1))
+        }
+    }
 }
-
-
-
 
 
 
@@ -501,6 +647,39 @@ impl StorageTrack {
 mod tests {
     use super::*;
 
+
+    #[test]
+    fn Occupied_from_str () {
+        let temp = "<Occupied \"train1\" 4.10:5.20 \"\">";
+        let result = Occupied::from_str(temp);
+        assert_eq!(result,Ok(Occupied::new(String::from("train1"), 4.1, 5.2, String::from(""))));
+    }
+    #[test]
+    fn Occupied_Display() {
+        let temp = Occupied::new(String::from("train1"), 4.1, 5.2, String::from(""));
+        let out = format!("{}",temp);
+        assert_eq!(out,String::from("<Occupied \"train1\" 4.10:5.20 \"\">"));
+    }
+    #[test]
+    fn Occupied_TrainNum2 () {
+        let temp = Occupied::new(String::from("train1"), 4.0, 5.0, String::from(""));
+        assert_eq!(temp.TrainNum2(),String::from(""));
+    }
+    #[test]
+    fn Occupied_Until () {
+        let temp = Occupied::new(String::from("train1"), 4.0, 5.0, String::from(""));
+        assert_eq!(temp.Until(),5.0);
+    }
+    #[test]
+    fn Occupied_From () {
+        let temp = Occupied::new(String::from("train1"), 4.0, 5.0, String::from(""));
+        assert_eq!(temp.From(),4.0);
+    }
+    #[test]
+    fn Occupied_TrainNum() {
+        let temp = Occupied::new(String::from("train1"), 4.0, 5.0, String::from(""));
+        assert_eq!(temp.TrainNum(),String::from("train1"));
+    }
     #[test]
     fn Occupied_new() {
         let result = Occupied::new(String::from("train1"), 4.5, 4.75,
@@ -512,63 +691,78 @@ mod tests {
         assert_eq!(result,temp);
     }
     #[test]
-    fn Occupied_getter_tests() {
-        let temp = Occupied::new(String::from("train1"), 4.0, 5.0, String::from(""));
-        assert_eq!(temp.TrainNum(),String::from("train1"));
-        assert_eq!(temp.From(),4.0);
-        assert_eq!(temp.Until(),5.0);
-        assert_eq!(temp.TrainNum2(),String::from(""));
-    }
-    #[test]
-    fn Occupied_Display() {
-        let temp = Occupied::new(String::from("train1"), 4.1, 5.2, String::from(""));
-        let out = format!("{}",temp);
-        assert_eq!(out,String::from("<Occupied \"train1\" 4.10:5.20 \"\">"));
-    }
-    #[test]
-    fn Occupied_from_str () {
-        let temp = "<Occupied \"train1\" 4.10:5.20 \"\">";
-        let result = Occupied::from_str(temp);
-        assert_eq!(result,Ok(Occupied::new(String::from("train1"), 4.1, 5.2, String::from(""))));
-    }
-
-    #[test]
     fn TimeRange_new () {
         let result = TimeRange::new(5.1, 6.2);
         let temp = TimeRange { from: 5.1, to: 6.2 };
         assert_eq!(result,temp);
     }
     #[test]
-    fn TimeRange_getters () {
+    fn TimeRange_To () {
         let result = TimeRange::new(5.1, 6.2);
-        assert_eq!(result.From(),5.1);
         assert_eq!(result.To(),6.2);
     }
     #[test]
-    fn TimeRange_ContainsTime() {
+    fn TimeRange_From () {
+        let result = TimeRange::new(5.1, 6.2);
+        assert_eq!(result.From(),5.1);
+    }
+    #[test]
+    fn TimeRange_ContainsTimeIn() {
         let result = TimeRange::new(5.1, 6.2); 
         assert_eq!(result.ContainsTime(6.0),true);
+    }
+    #[test]
+    fn TimeRange_ContainsTimeOut() {
+        let result = TimeRange::new(5.1, 6.2); 
         assert_eq!(result.ContainsTime(7.0),false);
     }
     #[test]
-    fn TimeRange_Eq() {
+    fn TimeRange_Eq_ab() {
         let a = TimeRange::new(2.4, 4.2);
         let b = TimeRange::new(2.4, 4.2);
         assert_eq!(a == b,true);
+    }
+    #[test]
+    fn TimeRange_Eq_ba() {
+        let a = TimeRange::new(2.4, 4.2);
+        let b = TimeRange::new(2.4, 4.2);
         assert_eq!(b == b,true);
+    }
+    #[test]
+    fn TimeRange_Ne_ab() {
+        let a = TimeRange::new(2.4, 4.2);
+        let b = TimeRange::new(2.4, 4.2);
         assert_eq!(a != b,false);
+    }
+    #[test]
+    fn TimeRange_Ne_ba() {
+        let a = TimeRange::new(2.4, 4.2);
+        let b = TimeRange::new(2.4, 4.2);
         assert_eq!(b != a,false);
     }
     #[test]
-    fn TimeRange_GtLt() {
+    fn TimeRange_Lt_ab() {
         let a = TimeRange::new(2.4, 4.2);
         let b = TimeRange::new(4.7, 5.9);
-        let c = TimeRange::new(1.2, 2.3);
-        let d = TimeRange::new(2.3, 3.4);
         assert_eq!(a < b,true);
+    }
+    #[test]
+    fn TimeRange_Gt_ba() {
+        let a = TimeRange::new(2.4, 4.2);
+        let b = TimeRange::new(4.7, 5.9);
         assert_eq!(b > a,true);
-        assert_eq!(d < a,false);
-        assert_eq!(a > c,true);
+    }
+    #[test]
+    fn TimeRange_NotLt_ba() {
+        let a = TimeRange::new(2.4, 4.2);
+        let b = TimeRange::new(4.7, 5.9);
+        assert_eq!(b < a,false);
+    }
+    #[test]
+    fn TimeRange_NotGt_ab() {
+        let a = TimeRange::new(2.4, 4.2);
+        let b = TimeRange::new(4.7, 5.9);
+        assert_eq!(a > b,false);
     }
     #[test]
     fn TimeRange_Display() {
@@ -583,4 +777,111 @@ mod tests {
         assert_eq!(result,Ok(TimeRange::new(4.1, 5.2)));
     }
 
+    #[test] 
+    fn StorageTrack_new () {
+        let track = StorageTrack::new(String::from("Tract 1"));
+        assert_eq!(track,StorageTrack{name: String::from("Tract 1"),
+                                      occupations: BTreeMap::new()});
+    }
+    #[test]
+    fn StorageTrack_Name () {
+        let track = StorageTrack::new(String::from("Tract 1"));
+        assert_eq!(track.Name(),String::from("Tract 1"));
+    }
+    #[test]
+    fn StorageTrack_SetName () {
+        let mut track = StorageTrack::new(String::from("Tract 1")); 
+        track.SetName(String::from("Track 1"));
+        assert_eq!(track.Name(),String::from("Track 1"));
+    }
+    #[test]
+    fn StorageTrack_StoreTrain () {
+        let mut track = StorageTrack::new(String::from("Track 1"));
+        let result = track.StoreTrain(String::from("Train1"),4.2, 5.1, String::from(""));
+        assert_eq!(result,Some(&Occupied::new(String::from("Train1"),4.2, 5.1, String::from(""))));
+    }
+    #[test]
+    fn StorageTrack_IncludesTime() {
+        let mut track = StorageTrack::new(String::from("Track 1"));
+        let result = track.StoreTrain(String::from("Train1"),4.2, 5.1, String::from(""));
+        let includes = track.IncludesTime(5.0);
+        assert_eq!(includes,Some(&Occupied::new(String::from("Train1"),4.2, 5.1, String::from(""))));
+    }
+    #[test]
+    fn StorageTrack_RemovedStoredTrain_true() {
+        let mut track = StorageTrack::new(String::from("Track 1"));
+        let result = track.StoreTrain(String::from("Train1"),4.2, 5.1, String::from(""));
+        assert_eq!(track.RemovedStoredTrain(4.2, 5.1),true);
+    }
+    #[test]
+    fn StorageTrack_RemovedStoredTrain_false() {
+        let mut track = StorageTrack::new(String::from("Track 1"));
+        let result = track.StoreTrain(String::from("Train1"),4.2, 5.1, String::from(""));
+        assert_eq!(track.RemovedStoredTrain(2.4, 3.0),false);
+    }
+    #[test]
+    fn StorageTrack_UsedTimeRange_true() {
+        let mut track = StorageTrack::new(String::from("Track 1"));
+        let result = track.StoreTrain(String::from("Train1"),4.2, 5.1, String::from(""));
+        assert_eq!(track.UsedTimeRange(4.2, 5.1),true);
+    }
+    #[test]
+    fn StorageTrack_UsedTimeRange_false() {
+        let mut track = StorageTrack::new(String::from("Track 1"));
+        let result = track.StoreTrain(String::from("Train1"),4.2, 5.1, String::from(""));
+        assert_eq!(track.UsedTimeRange(3.2, 4.0),false);
+    }
+    #[test]
+    fn StorageTrack_FindOccupied() {
+        let mut track = StorageTrack::new(String::from("Track 1"));
+        let result = track.StoreTrain(String::from("Train1"),4.2, 5.1, String::from(""));
+        assert_eq!(track.FindOccupied(4.2, 5.1),Some(&Occupied::new(String::from("Train1"),4.2, 5.1, String::from(""))));
+    }
+    #[test]
+    fn StorageTrack_UpdateStoredTrain () {
+        let mut track = StorageTrack::new(String::from("Track 1"));
+        let result = track.StoreTrain(String::from("Train1"),4.2, 5.1, String::from(""));
+        assert_eq!(track.UpdateStoredTrain(4.2, 5.1, String::from("OtherTrain")),
+                    Some(&Occupied::new(String::from("OtherTrain"),4.2, 5.1, String::from(""))));
+    }
+    #[test]
+    fn StorageTrack_UpdateStoredTrain2 () {
+        let mut track = StorageTrack::new(String::from("Track 1"));
+        let result = track.StoreTrain(String::from("Train1"),4.2, 5.1, String::from(""));
+        assert_eq!(track.UpdateStoredTrain2(4.2, 5.1, String::from("OtherTrain")),
+                    Some(&Occupied::new(String::from("Train1"),4.2, 5.1, String::from("OtherTrain"))));
+    }
+    #[test]
+    fn StorageTrack_UpdateStoredTrainArrival () {
+        let mut track = StorageTrack::new(String::from("Track 1"));
+        let result = track.StoreTrain(String::from("Train1"),4.2, 5.1, String::from(""));
+        assert_eq!(track.UpdateStoredTrainArrival(4.2, 5.1, 5.0),
+                    Some(&Occupied::new(String::from("Train1"),5.0, 5.1, String::from(""))));
+    }
+    #[test]
+    fn StorageTrack_UpdateStoredTrainDeparture () {
+        let mut track = StorageTrack::new(String::from("Track 1"));
+        let result = track.StoreTrain(String::from("Train1"),4.2, 5.1, String::from(""));
+        assert_eq!(track.UpdateStoredTrainDeparture(4.2, 5.1, 5.0),
+                    Some(&Occupied::new(String::from("Train1"),4.2, 5.0, String::from(""))));
+    }
+    #[test]
+    fn StorageTrack_Display () {
+        let mut track = StorageTrack::new(String::from("Track 1"));
+        let result = track.StoreTrain(String::from("Train1"),4.2, 5.1, String::from(""));
+        let formatted = format!("{}",track);
+        assert_eq!(formatted,
+                String::from("<StorageTrack \"Track 1\" 1 <TimeRange 4.20 5.10> <Occupied \"Train1\" 4.20:5.10 \"\"> >"));
+    }
+    #[test]
+    fn StorageTrack_from_str () {
+        let track = 
+            match StorageTrack::from_str("<StorageTrack \"Track 1\" 1 <TimeRange 4.20 5.10> <Occupied \"Train1\" 4.20:5.10 \"\"> >") {
+                Err(p) => panic!("{}",p.to_string()),
+                Ok(t) => t,
+        };
+        let formatted = format!("{}",track);        
+        assert_eq!(formatted,
+                String::from("<StorageTrack \"Track 1\" 1 <TimeRange 4.20 5.10> <Occupied \"Train1\" 4.20:5.10 \"\"> >"));
+    }
 }
