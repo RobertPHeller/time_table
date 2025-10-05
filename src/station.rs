@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:04
-//  Last Modified : <251005.1704>
+//  Last Modified : <251005.1719>
 //
 //  Description	
 //
@@ -56,6 +56,7 @@ use std::fmt;
 use std::str::FromStr;
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
+use std::collections::btree_map::*;
 
 /// This class records a train sitting on a storage track during a specified 
 /// time frame.  The train number (symbol) might change when the train leaves 
@@ -622,8 +623,19 @@ impl StorageTrack {
             Ok((result,pos+1))
         }
     }
+    pub fn iter(&self) -> Iter<'_, TimeRange, Occupied> {
+        self.occupations.iter()
+    }
+    pub fn occupations(&self) ->  Values<'_, TimeRange, Occupied> {
+        self.occupations.values()
+    }
+    pub fn occupations_mut(&mut self) ->  ValuesMut<'_, TimeRange, Occupied> {
+        self.occupations.values_mut()
+    }
+    pub fn iter_mut(&mut self) -> IterMut<'_, TimeRange, Occupied> {
+        self.occupations.iter_mut()
+    }
 }
-
 
 
 
