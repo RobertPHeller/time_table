@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:04
-//  Last Modified : <251005.1953>
+//  Last Modified : <251006.1517>
 //
 //  Description	
 //
@@ -331,7 +331,11 @@ impl TimeRange {
     }
 }
 
-                
+/** The Occupied Map type, ordered by time ranges.
+  *
+  * @author Robert Heller \<heller\@deepsoft.com\>
+  *
+  */
 type OccupiedMap = BTreeMap<TimeRange, Occupied>;        
 
 /** The StorageTrack class implements a storage track.
@@ -641,21 +645,328 @@ impl StorageTrack {
     }
 }
 
+/** Storage track map. Indexed by name.
+  *
+  * @author Robert Heller \<heller\@deepsoft.com\>
+  *
+  */
+type StorageTrackMap = BTreeMap<String, StorageTrack>;
+
+/** The Station class implements a station.  Stations are not specifically
+  * passenger stations, but are any place where trains stop or meet or might
+  * just be important mile post locations used for time keeping checks.  They
+  * also can be just sidings.
+  *
+  * @author Robert Heller \<heller\@deepsoft.com\>
+  *
+  */
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct Station {
+    name: String,
+    storageTracks: StorageTrackMap,
+    smile: f64,
+    duplicateStationIndex: Option<usize>,
+}
+
+impl fmt::Display for Station {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<Station \"{}\" {:5.3} {} {}", self.name, self.smile, 
+            match self.duplicateStationIndex {
+                None => String::from("None"),
+                Some(u) => format!("Some({})",u),
+            }, self.storageTracks.len())?;
+        for (n, st) in self.storageTracks.iter() {
+            write!(f," \"{}\" {}",n,st)?;
+        }
+        write!(f,">")
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum StationParseError {
+    StartSyntaxError,
+    NameSyntaxError,
+    SmileSyntaxError,
+    CountSyntaxError,
+    DuplSyntaxError,
+    STNameSyntaxError,
+    STrackSyntaxError,
+    ExtraCharacters,
+    MissingBracket,
+}
+
+impl fmt::Display for StationParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            StationParseError::StartSyntaxError =>
+                write!(f,"Missing '<Station '"),
+            StationParseError::NameSyntaxError =>
+                write!(f,"Missing station name"),
+            StationParseError::SmileSyntaxError =>
+                write!(f,"Missing SMile"),
+            StationParseError::CountSyntaxError =>
+                write!(f,"Missing Storage track Count"),
+            StationParseError::DuplSyntaxError =>
+                write!(f,"Missing duplicate station index"),
+            StationParseError::STNameSyntaxError =>
+                write!(f,"Missing Storage track name"),
+            StationParseError::STrackSyntaxError =>
+                write!(f,"Missing StorageTrack"),
+            StationParseError::ExtraCharacters =>
+                write!(f,"Extra characters"),
+            StationParseError::MissingBracket =>
+                write!(f,"Missing '>'"),
+        }
+    }
+}
+
+impl FromStr for Station {
+    type Err = StationParseError;
+    /// Convert from &str to Self
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        let (result,pos) = Station::ParseStation(string)?;
+        if pos == string.len() {
+            Ok(result)
+        } else {
+            Err(StationParseError::ExtraCharacters)
+        }
+    }
+}
 
 
+impl Station {
+    /** Construct a station object, given a name and a scale mile location.
+      * ## Parameters:
+      *  - name_ The name of the station.
+      *  -  smile_ The scale mile location of the station.
+      */
+    pub fn new(name_: String, smile_: f64) -> Self {
+        Self {name: name_, smile: smile_, duplicateStationIndex: None,
+              storageTracks: BTreeMap::new() }
+    }
+    /** Return the name of the station.
+      */
+    pub fn Name(&self) -> String {self.name.clone()}
+    /** Return the scale mile of the station.
+      */
+    pub fn SMile(&self) -> f64 {self.smile}
+    /** Return the  duplicate station index.  This is the index of another
+      * station that is the physical duplicate of this one.  Only meaningful
+      * on out-and-back type layouts or other layout configurations where 
+      * stations are logically duplicated due to trackage having dual 
+      * meaning.
+      */
+    pub fn DuplicateStationIndex(&self) -> Option<usize> {self.duplicateStationIndex}
+    /** Set the duplication station index.
+      * ## Parameters:
+      * - index The index of the duplicate station.
+      */
+    pub fn SetDuplicateStationIndex(&mut self, index: Option<usize>) {
+        self.duplicateStationIndex = index;
+    }
+    /** Add a storage track.
+      * ## Parameters:
+      * - name_ The name of the storage track.
+      */
+    pub fn AddStorageTrack(&mut self, name_: String) -> Option<&mut StorageTrack> {
+        if self.FindStorageTrack(name_.clone()).is_some() {return None;}
+        let newtrack = StorageTrack::new(name_.clone());
+        self.storageTracks.insert(name_.clone(),newtrack);
+        self.storageTracks.get_mut(&name_)
+    }
+    /** Find a storage track by name.
+      * ## Parameters:
+      * - name The name of the storage track.
+      */
+    pub fn FindStorageTrack(&self,name: String) -> Option<&StorageTrack> {
+        self.storageTracks.get(&name)
+    }
+    /** Find a storage track by name.
+      * ## Parameters:
+      * - name The name of the storage track.
+      */
+    pub fn FindStorageTrack_mut(&mut self,name: String) -> Option<&mut StorageTrack> {
+        self.storageTracks.get_mut(&name)
+    }
+    /** Find track a train is stored on.
+      * ## Parameters:
+      * - trainNumber The train number (symbol) to search for.
+      * - fromtime The from time to check.
+      * - totime The to time to check.
+      */
+    pub fn FindTrackTrainIsStoredOn(&self,trainNumber: String, fromtime: f64,
+                                    totime: f64) -> Option<&StorageTrack> {
+        for (name, ST) in self.storageTracks.iter() {
+            let mut occupied = ST.IncludesTime(fromtime);
+            match occupied {
+                None => (),
+                Some(occ) => if occ.TrainNum() == trainNumber {return Some(ST);},
+            };
+            occupied = ST.IncludesTime(totime);
+            match occupied {
+                None => (),
+                Some(occ) => if occ.TrainNum() == trainNumber {return Some(ST);},
+            };
+        }
+        None
+    }
+    /** Find track a train is stored on.
+      * ## Parameters:
+      * - trainNumber The train number (symbol) to search for.
+      * - fromtime The from time to check.
+      * - totime The to time to check.
+      */
+    pub fn FindTrackTrainIsStoredOn_mut(&mut self,trainNumber: String, 
+                         fromtime: f64,totime: f64) -> Option<&mut StorageTrack> {
+        for (name, ST) in self.storageTracks.iter_mut() {
+            let mut occupied = ST.IncludesTime(fromtime);
+            match occupied {
+                None => (),
+                Some(occ) => if occ.TrainNum() == trainNumber {return Some(ST);},
+            };
+            occupied = ST.IncludesTime(totime);
+            match occupied {
+                None => (),
+                Some(occ) => if occ.TrainNum() == trainNumber {return Some(ST);},
+            };
+        }
+        None
+    }
+    /// Number of storage tracks.
+    pub fn NumberOfStorageTracks(&self) -> usize {self.storageTracks.len()}
+    /// General key, value iterator 
+    pub fn iter(&self) -> Iter<'_, String, StorageTrack> {
+        self.storageTracks.iter()
+    }
+    /// General mutable key, value iterator
+    pub fn iter_mut(&mut self) ->  IterMut<'_, String, StorageTrack> {
+        self.storageTracks.iter_mut()
+    }
+    /// StorageTracks iterator
+    pub fn storagetracks(&self) ->  Values<'_, String, StorageTrack> {
+        self.storageTracks.values()
+    }
+    /// Mutable StorageTracks iterator
+    pub fn storagetracks_mut(&mut self) -> ValuesMut<'_, String, StorageTrack> {
+        self.storageTracks.values_mut()
+    }
+    /// 
+    pub fn ParseStation(string: &str) -> Result<(Self, usize), StationParseError> {
+        let mut pos: usize;
+        match string.match_indices("<Station \"").next() {
+            None => return Err(StationParseError::StartSyntaxError),
+            Some((n, m)) => pos = n + m.len(),
+        }
+        let name: String;
+        match string[pos..].match_indices('"').next() {
+            None => return Err(StationParseError::NameSyntaxError),
+            Some((n, m)) => {
+                name = String::from(&string[pos..n+pos]);
+                pos += n + m.len();
+            },
+        };
+        while string[pos..pos+1] == *" " || string[pos..pos+1] == *"\t" ||
+              string[pos..pos+1] == *"\n" {
+            pos += 1;
+        }
+        let smile: f64;
+        match string[pos..].match_indices(' ').next() {
+            None => return Err(StationParseError::SmileSyntaxError),
+            Some((n, m)) => {
+                smile  = match (string[pos..n+pos].trim()).parse::<f64>() {
+                    Ok(sm) => sm,
+                    Err(p) => return Err(StationParseError::SmileSyntaxError),
+                };
+                pos += n + m.len();
+            },
+        };
+        let mut result = Station::new(name,smile);
+        while string[pos..pos+1] == *" " || string[pos..pos+1] == *"\t" ||
+              string[pos..pos+1] == *"\n" {
+            pos += 1;
+        }
+        let dupl: Option<usize>;
+        match string[pos..].match_indices(' ').next() {
+            None => return Err(StationParseError::DuplSyntaxError),
+            Some((n, m)) => {
+                let temp = string[pos..n+pos].trim();
+                pos += n+m.len();
+                if temp == "None" {
+                    dupl = None;
+                } else {
+                    match temp.match_indices("Some(").next() {
+                        None => return Err(StationParseError::DuplSyntaxError),
+                        Some((n, m)) => match temp[m.len()..].match_indices(')').next() {
+                            None =>  return Err(StationParseError::DuplSyntaxError),
+                            Some((n, m2)) => {
+                                let d = match temp[m.len()..n].parse::<usize>() {
+                                    Ok(x) => x,
+                                    Err(p) => 
+                                        return Err(StationParseError::DuplSyntaxError),
+                                };
+                                dupl = Some(d);
+                            },
+                        },
+                    };
+                }
+            },
+        };
+        result.SetDuplicateStationIndex(dupl);
+        while string[pos..pos+1] == *" " || string[pos..pos+1] == *"\t" ||
+              string[pos..pos+1] == *"\n" {
+            pos += 1;
+        }
+        let count: usize;
+        match string[pos..].match_indices(&[' ','>']).next() {
+            None => return Err(StationParseError::CountSyntaxError),
+            Some((n, m)) => {
+                count  = match (string[pos..n+pos].trim()).parse::<usize>() {
+                    Ok(sm) => sm,
+                    Err(p) => return Err(StationParseError::CountSyntaxError),
+                };
+                pos += n + m.len();
+            },
+        };
+        for i in 0..count {
+            let track_name: String;
+            match string[pos..].match_indices('"').next() {
+                None => return Err(StationParseError::STNameSyntaxError),
+                Some((n, m)) => pos += n + m.len(),
+            };
+            match string[pos..].match_indices('"').next() {
+                None => return Err(StationParseError::STNameSyntaxError),
+                Some((n, m)) => {
+                    track_name = String::from(&string[pos..n+pos]);
+                    pos += n + m.len();
+                },
+            };
+            while string[pos..pos+1] == *" " || string[pos..pos+1] == *"\t" ||
+                  string[pos..pos+1] == *"\n" {
+                pos += 1;
+            }
+            let track: StorageTrack = match StorageTrack::ParseStorageTrack(&string[pos..]) {
+                Ok((st,p)) => {
+                    pos += p;
+                    st
+                },
+                Err(p) => return Err(StationParseError::STrackSyntaxError),
+            };
+            result.storageTracks.insert(track_name,track);
+        }
+        if count > 0 {
+            match string[pos..].match_indices('>').next() {
+                None => return Err(StationParseError::MissingBracket),
+                Some((n, m)) => pos += n + m.len(),
+            }
+        }
+                
+        Ok((result,pos))
+    }
+}    
 
-
-
-
-
-
-
-
-
-
-
-
-
+/** Station Vector.
+  */
+type StationVector =  Vec<Station>;
 
 
 
@@ -900,4 +1211,102 @@ mod tests {
         assert_eq!(formatted,
                 String::from("<StorageTrack \"Track 1\" 1 <TimeRange 4.20 5.10> <Occupied \"Train1\" 4.20:5.10 \"\"> >"));
     }
+
+    #[test]
+    fn Station_new () {
+        let station = Station::new(String::from("Station 1"), 45.7);
+        assert_eq!(station, Station { name: String::from("Station 1"), 
+                                      storageTracks: BTreeMap::new(), 
+                                      smile: 45.7, 
+                                      duplicateStationIndex: None });
+    }
+    #[test]
+    fn Station_Name () {
+        let station = Station::new(String::from("Station 1"), 45.7);
+        assert_eq!(station.Name(),String::from("Station 1"));
+    }
+    #[test]
+    fn Station_SMile () {
+        let station = Station::new(String::from("Station 1"), 45.7);
+        assert_eq!(station.SMile(),45.7);
+    }
+    #[test]
+    fn Station_DuplicateStationIndex () {
+        let station = Station::new(String::from("Station 1"), 45.7);
+        assert_eq!(station.DuplicateStationIndex().is_none(),true);
+    }
+    #[test]
+    fn Station_SetDuplicateStationIndex () {
+        let mut station = Station::new(String::from("Station 1"), 45.7);
+        station.SetDuplicateStationIndex(Some(42));
+        assert_eq!(station.DuplicateStationIndex(),Some(42));
+    }
+    #[test]
+    fn Station_AddStorageTrack () {
+        let mut station = Station::new(String::from("Station 1"), 45.7);
+        let st = station.AddStorageTrack(String::from("Track 1"));
+        assert_eq!(st,Some(&mut StorageTrack::new(String::from("Track 1"))));
+    }
+    #[test]
+    fn Station_FindStorageTrack () {
+        let mut station = Station::new(String::from("Station 1"), 45.7); 
+        station.AddStorageTrack(String::from("Track 1"));
+        assert_eq!(station.FindStorageTrack(String::from("Track 1")),
+                    Some(&StorageTrack::new(String::from("Track 1"))));
+    }
+    #[test]
+    fn Station_FindStorageTrack_mut () {
+        let mut station = Station::new(String::from("Station 1"), 45.7); 
+        station.AddStorageTrack(String::from("Track 1"));
+        assert_eq!(station.FindStorageTrack_mut(String::from("Track 1")),
+                    Some(&mut StorageTrack::new(String::from("Track 1"))));
+    }
+    #[test]
+    fn Station_FindTrackTrainIsStoredOn () {
+        let mut station = Station::new(String::from("Station 1"), 45.7);
+        let track = station.AddStorageTrack(String::from("Track 1")).unwrap();
+        track.StoreTrain(String::from("Train1"),4.2,5.1,String::from(""));
+        let other = track.clone();
+        let thetrack = station.FindTrackTrainIsStoredOn(String::from("Train1"),4.2,5.1).unwrap();
+        assert_eq!(thetrack.Name(),String::from("Track 1"));
+        assert_eq!(*thetrack,other);
+    }
+    #[test]
+    fn Station_FindTrackTrainIsStoredOn_mut () {
+        let mut station = Station::new(String::from("Station 1"), 45.7);
+        let track = station.AddStorageTrack(String::from("Track 1")).unwrap();
+        track.StoreTrain(String::from("Train1"),4.2,5.1,String::from(""));
+        let other = track.clone();
+        let thetrack = station.FindTrackTrainIsStoredOn_mut(String::from("Train1"),4.2,5.1).unwrap();
+        assert_eq!(thetrack.Name(),String::from("Track 1"));
+        assert_eq!(*thetrack,other);
+    }
+    #[test]
+    fn Station_NumberOfStorageTracks () {
+        let mut station = Station::new(String::from("Station 1"), 45.7); 
+        station.AddStorageTrack(String::from("Track 1"));
+        assert_eq!(station.NumberOfStorageTracks(),1);
+    }
+    #[test]
+    fn Station_Display () {
+        let mut station = Station::new(String::from("Station 1"), 45.7);
+        let track = station.AddStorageTrack(String::from("Track 1")).unwrap();
+        track.StoreTrain(String::from("Train1"),4.2,5.1,String::from(""));
+        let output = format!("{}",station);
+        assert_eq!(output,String::from("<Station \"Station 1\" 45.700 None 1 \"Track 1\" <StorageTrack \"Track 1\" 1 <TimeRange 4.20 5.10> <Occupied \"Train1\" 4.20:5.10 \"\"> >>"));
+    }
+    #[test]
+    fn Station_from_str () {
+        let mut station = Station::new(String::from("Station 1"), 45.7);
+        let track = station.AddStorageTrack(String::from("Track 1")).unwrap();
+        track.StoreTrain(String::from("Train1"),4.2,5.1,String::from(""));
+        let output = format!("{}",station);
+        let otherstation = match Station::from_str(&output) {
+            Ok(s) => s,
+            Err(p) => panic!("{}", p.to_string()),
+        };
+        assert_eq!(station,otherstation);
+    }
+        
 }
+
