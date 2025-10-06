@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:04
-//  Last Modified : <251006.1517>
+//  Last Modified : <251006.1524>
 //
 //  Description	
 //
@@ -336,7 +336,7 @@ impl TimeRange {
   * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
-type OccupiedMap = BTreeMap<TimeRange, Occupied>;        
+pub type OccupiedMap = BTreeMap<TimeRange, Occupied>;        
 
 /** The StorageTrack class implements a storage track.
   *
@@ -650,7 +650,7 @@ impl StorageTrack {
   * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
-type StorageTrackMap = BTreeMap<String, StorageTrack>;
+pub type StorageTrackMap = BTreeMap<String, StorageTrack>;
 
 /** The Station class implements a station.  Stations are not specifically
   * passenger stations, but are any place where trains stop or meet or might
@@ -966,7 +966,7 @@ impl Station {
 
 /** Station Vector.
   */
-type StationVector =  Vec<Station>;
+pub type StationVector =  Vec<Station>;
 
 
 
@@ -1307,6 +1307,4 @@ mod tests {
         };
         assert_eq!(station,otherstation);
     }
-        
 }
-
