@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251007.2249>
+//  Last Modified : <251008.1511>
 //
 //  Description	
 //
@@ -306,6 +306,19 @@ pub enum ConstructorError {
     StationParseError(String,String),
     CabCountParseError(String,String),
     CabParseError(String,String),
+    TrainCountParseError(String,String),
+    TrainParseError(String,String),
+    NoteCountParseError(String,String),
+    OptionsCountParseError(String,String),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum AddTrainError {
+    TempError,
+}
+
+#[derive(Debug, Clone, PartialEq)] 
+pub enum DeleteTrainError {
 }
 
 impl TimeTableSystem {
@@ -415,7 +428,73 @@ impl TimeTableSystem {
             };
             this.cabs.insert(cab.Name().clone(),cab);
         }
-
+        line_buffer.clear();
+        match buf_reader.read_line(&mut line_buffer) {
+            Ok(l) => if l == 0 {
+                        return Err(ConstructorError::PrematureEOF(String::from("Reading Train count")));
+                     },
+            Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Train count"),e.to_string())),
+        };
+        count = match line_buffer.parse::<usize>() {
+            Ok(c) => c,
+            Err(e) => return Err(ConstructorError::TrainCountParseError(line_buffer,e.to_string())),
+        };
+        for i in 0..count {
+            line_buffer.clear();
+            match buf_reader.read_line(&mut line_buffer) {
+                Ok(l) => if l == 0 {
+                    return Err(ConstructorError::PrematureEOF(String::from("Reading cabs")));
+                },
+                Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading stations"),e.to_string())),
+            };
+            let train = match Train::Read(&line_buffer,&this.cabs) {
+                Ok(t) => t,
+                Err(e) => return Err(ConstructorError::TrainParseError(line_buffer,e.to_string())),
+            };
+            this.trains.insert(train.Number(),train);
+        }
+        line_buffer.clear();
+        match buf_reader.read_line(&mut line_buffer) {
+            Ok(l) => if l == 0 {
+                        return Err(ConstructorError::PrematureEOF(String::from("Reading Note count")));
+                     },
+            Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Note count"),e.to_string())),
+        };
+        count = match line_buffer.parse::<usize>() {
+            Ok(c) => c,
+            Err(e) => return Err(ConstructorError::NoteCountParseError(line_buffer,e.to_string())),
+        };
+        for i in 0..count {
+            let note = match Self::ReadNote(&mut buf_reader) {
+                Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Note"),e.to_string())),
+                Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Note"))),
+                Ok(Some(n)) => n,
+            };
+            this.notes.push(note);
+        }
+        match buf_reader.read_line(&mut line_buffer) {
+            Ok(l) => if l == 0 {
+                        return Err(ConstructorError::PrematureEOF(String::from("Reading Options count")));
+                     },
+            Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Options count"),e.to_string())),
+        };
+        count = match line_buffer.parse::<usize>() {
+            Ok(c) => c,
+            Err(e) => return Err(ConstructorError::OptionsCountParseError(line_buffer,e.to_string())),
+        };
+        for i in 0..count {
+            let optkey = match Self::ReadNote(&mut buf_reader) {
+                Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Options key"),e.to_string())),
+                Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Options key"))),
+                Ok(Some(n)) => n,
+            };
+            let optval = match Self::ReadNote(&mut buf_reader) {
+                Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Options value"),e.to_string())),
+                Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Options value"))),
+                Ok(Some(n)) => n,
+            };
+            this.print_options.insert(optkey,optval);
+        }
         Ok(this)
     }
     /** @brief The constructor that creates a new, empty time table system from
@@ -427,14 +506,421 @@ impl TimeTableSystem {
       *  @param timeinterval The tick frequency in time units.
       */
     pub fn new(name: String,timescale: u32,timeinterval: u32) -> Self {
-        let mut this = Self {name: name, filepath: PathBuf::new(), 
-                             timescale: timescale, timeinterval: timeinterval,
-                             stations: Vec::new(), cabs: HashMap::new(), 
-                             trains: HashMap::new(), notes: Vec::new(), 
-                             print_options: HashMap::new(),
-                             table_of_contents_p: true, 
-                             direction_name: String::new() };
-        this
+        Self {name: name, filepath: PathBuf::new(), timescale: timescale, 
+              timeinterval: timeinterval, stations: Vec::new(), 
+              cabs: HashMap::new(), trains: HashMap::new(), notes: Vec::new(), 
+              print_options: HashMap::new(), table_of_contents_p: true, 
+              direction_name: String::new() }
+    }
+    /** @brief Add a new station to the system.
+      *
+      * Creates a new Station class
+      * instance and adds it to the station vector.  Stations must be
+      * added in order of their scale mile location.  If the new station
+      * is out of order, -1 is returned and the station is not added!
+      *
+      *  @param name The name of the station.
+      *  @param smile The scale mile along the route where the station is
+      *    located.
+      */
+    pub fn AddStation(&mut self,name: String,smile: f64) -> Option<usize> {
+        match self.FindStationByName(name.clone()) {
+            None => match self.stations.last() {
+                        None => {
+                            self.stations.push(Station::new(name.clone(),smile));
+                            Some(self.stations.len()-1)
+                        },
+                        Some(l) =>
+                            if l.SMile() < smile {
+                                self.stations.push(Station::new(name.clone(),smile));
+                                Some(self.stations.len()-1)
+                            } else {
+                                None
+                            },
+                    },
+            Some(index) => Some(index),
+        }                        
+    }
+    /** @brief Find a station by name.
+      *
+      * Returns the index of the station or -1 if
+      * the station cannot be found.
+      * @param name The name of the station.
+     */
+    pub fn FindStationByName(&self,name: String) -> Option<usize> {
+        for i in 0..self.stations.len() {
+            if self.stations[i].Name() == name {
+                return Some(i);
+            }
+        }
+        None
+    }
+    /** @brief Number of stations. 
+      * 
+      * Returns the number of stations in the system.
+      */
+    pub fn NumberOfStations(&self) -> usize {self.stations.len()}
+    /** @brief Return Ith station object.
+      *
+      * Returns the NULL pointer if the index
+      * is out of range.
+      *   @param i The index of the station.
+      */
+    pub fn IthStation(&self, i: usize) -> Option<&Station> {
+        self.stations.get(i)
+    }
+    //pub fn IthStationMut(&mut self, i: usize) -> Option<&Station> {
+    //    self.stations.get_mut(i)
+    //}
+    /** @brief Return the Ith station name. 
+      *
+      * Returns the NULL pointer if the index
+      * is out of range.
+      *    @param i The index of the station.
+      */
+    pub fn StationName(&self,i: usize) -> Option<String> {
+        match self.stations.get(i) {
+            None => None,
+            Some(s) => Some(s.Name())
+        }
+    }
+    /** @brief Return the Ith station's scale mile location.
+      *
+      * Returns -1.0 if
+      * the index is out of range.
+      *    @param i The index of the station.
+      */
+    pub fn SMile(&self,i: usize) -> Option<f64> {
+        match self.stations.get(i) {
+            None => None, 
+            Some(s) => Some(s.SMile()),
+        }
+    }
+    /** @brief The total length of the route in scale miles.  
+      * 
+      * This is just the
+      * scale mile location of the last station along the route.
+      */
+    pub fn TotalLength(&self) -> f64 {
+        if self.stations.len() == 0 {
+            0.0
+        } else {
+            self.stations.last().unwrap().SMile()
+        }
+    }
+    /** @brief The duplicate station index for a given station.  
+      * 
+      * Only meaningful
+      * for out and back type layouts or layouts that have shared trackage.
+      * This would be stations along shared trackage.  Returns -1 if
+      * the index is out of range or if there is not a duplicate station for
+      * the ith station.
+      *    @param i The index of the station.
+      */
+    pub fn DuplicateStationIndex(&self,i: usize) -> Option<usize> {
+        match self.stations.get(i) {
+            None => None,
+            Some(s) => s.DuplicateStationIndex(),
+        }
+    }
+    /** @brief Set the duplicate station index for a given station.
+      *
+      * Only 
+      * meaningful for out and back type layouts or layouts that have 
+      * shared trackage. This would be stations along shared trackage.
+      * setting the duplicate station index indicates there is no
+      * duplicate station
+      *    @param i The index of the station to be updated.
+      *    @param dup The other station index sharing this station 
+      *      location.
+      */
+    pub fn SetDuplicateStationIndex(&mut self,i: usize,dup: usize) {
+        match self.stations.get_mut(i) {
+            None => (),
+            Some(s) => s.SetDuplicateStationIndex(Some(dup)),
+        };
+    }
+    /** @brief Add a storage track to a station.  
+      *
+      * Sometimes stations, especially
+      * major terminals, have extra tracks for storing terminating and
+      * originating trains.  Returns the NULL pointer if the index is
+      * out of range.  Otherwise returns the pointer to the new 
+      * StorageTrack object.
+      *    @param i The index of the station to be updated.
+      *    @param name The name for the new storage track.
+      */
+    pub fn AddStorageTrack(&mut self,i: usize,name: String) -> Option<&mut StorageTrack> {
+        match self.stations.get_mut(i) {
+            None => None,
+            Some(s) => s.AddStorageTrack(name)
+        }
+    }
+    /** @brief Find a storage track at a station.
+      *
+      * Sometimes stations, especially
+      * major terminals, have extra tracks for storing terminating and
+      * originating trains. Returns the NULL pointer if the index is
+      * out of range or if there is no storage track with the specified
+      * name.  Otherwise the StorageTrack object pointer is returned.
+      *    @param i The index of the station to be updated.
+      *    @param name The name of the storage track.
+      */
+    pub fn FindStorageTrack(&self,i: usize,name: String) -> Option<&StorageTrack> {
+        match self.stations.get(i) {
+            None => None,
+            Some(s) => s.FindStorageTrack(name),
+        }
+    }
+    pub fn FindStorageTrack_mut(&mut self,i: usize,name: String) -> Option<&mut StorageTrack> {
+        match self.stations.get_mut(i) {
+            None => None,
+            Some(s) => s.FindStorageTrack_mut(name),
+        }
+    }
+    /** @brief Add a new cab to the system.
+      *
+      * With DC systems this would be an
+      * actual cab.  With DCC systems, this can be used to define a
+      * logical operator for the train.  The color is used for visual
+      * distintion.  A pointer to the new cab object is returned.
+      *   @param name The name of the cab.
+      *   @param color The color of the cab.
+      */
+    pub fn AddCab(&mut self,name: String,color: String) -> Cab {
+        match self.FindCab(name.clone()) {
+            None => {
+                let newCab = Cab::new(name.clone(),color);
+                self.cabs.insert(name.clone(),newCab.clone());
+                newCab
+            },
+            Some(c) => c,
+        }
+    }
+    /** @brief The nymber of cabs.
+      */
+    pub fn NumberOfCabs(&self) -> usize {self.cabs.len()}
+    /** @brief Add a train to the system, short version.  
+      *
+      * Creates a new Train
+      * opject and adds it to the train map.  The short version assumes
+      * that the train does not layover at any of the stops.  Layover
+      * times can be added later.  Returns a pointer to the new Train
+      * object.
+      *   @param name The name of the train.
+      *   @param number The number (or symbol) of the train.
+      *   @param speed The trains maximum speed.
+      *   @param classnumber The class (inverse priority) of the train.
+      *   @param departure The train's departure time.
+      *   @param start The train's origin station index.  Defaults to the
+      *    first station.
+      *   @param end The train's destination station index. Defaults to
+      *    the last station.
+      */
+    pub fn AddTrain(&mut self,name: String,number: String,speed: u32, 
+                    classnumber: u32, departure: u32, start: usize, 
+                    end: usize) -> Result<Train,AddTrainError> {
+        Err(AddTrainError::TempError)
+    }
+    /** @brief Add a train to the system, long version (includes storage track
+      * checking).  
+      *
+      * This version includes layover times, cabnames, and
+      * storage track assignments.  Returns a pointer to the new Train
+      * object or the NULL pointer if there was an error, in which case
+      * the error message will be stored in the pointer provided.
+      *  @param name The name of the train.
+      *  @param number The number (or symbol) of the train.
+      *  @param speed The trains maximum speed.
+      *  @param classnumber The class (inverse priority) of the train.
+      *  @param departure The train's departure time.
+      *  @param start The train's origin station index.
+      *  @param end The train's destination station index.
+      *  @param layoverVector The train's layover vector.
+      *  @param cabnameVector The train's departure cab name vector.
+      *  @param storageTrackVector The train's storage track name vector.
+      *  @param outmessage Pointer to a pointer to receive any error 
+      *    messages for any errors that might occur.
+      */
+    pub fn AddTrainLongVersion(&mut self,name: String,number: String,
+                               speed: u32,classnumber: u32,departure: u32,
+                               start: usize,end: usize, 
+                               layoverVector: &DoubleVector,
+                               cabnameVector: &StringList,
+                               storageTrackVector: &StringList) 
+                -> Result<Train,AddTrainError> {
+        Err(AddTrainError::TempError)
+    }
+    /**
+      * @brief Delete a train.  
+      *
+      * Returns true if the train was successfully deleted
+      * and false if not.  If the train was not deleted, an error message
+      * will be provided in the pointer provided.
+      *  @param number The train number or symbol.
+      *  @param outmessage Pointer to a pointer to receive any error messages
+      *      for any errors that might occur.
+      */
+    pub fn DeleteTrain(&mut self,number: String) -> Result<(),DeleteTrainError> {
+        Ok(())
+    }
+    /** @brief Find a cab (by name).  
+      *
+      * Returns the pointer to the named cab or NULL
+      * if the cab was not found.
+      *   @param name The cab name to look for.
+      */
+    pub fn FindCab(&self,name: String) -> Option<Cab> {
+        None
+    }
+    /** @brief Find a train by name.
+      *
+      * Returns the pointer to the named train or
+      * NULL if the train was not found.
+      *   @param name The train name to look for.
+      */
+    pub fn FindTrainByName(&self,name: String) -> Option<Train> {
+        None
+    }
+    /** @brief Find a train by number (or symbol). 
+      *
+      * Returns the pointer to the 
+      * train or NULL if the train was not found.
+      *   @param number The train number (or symbol) to look for.
+      */
+    pub fn FindTrainByNumber(&self, number: String) -> Option<Train> {
+        None
+    }
+    /** @brief Return the number of trains.
+      */
+    pub fn NumberOfTrains(&self) -> usize {self.trains.len()}
+    /** @brief Return the number of notes.
+      */
+    pub fn NumberOfNotes(&self)  -> usize {self.notes.len()}
+    /** @brief Return the ith note (1-based!) as a string. , 
+      * Returns the NULL
+      * pointer if the index is out of range.
+      *   @param i The note index.  The first note is at index 1, not 0!.
+      */
+    pub fn Note(&self,i: usize) -> Option<String> {
+        self.notes.get(i).cloned()
+    }
+    /** @brief Add a note to the notes vector.
+      *   @param newnote The text of the new note.
+      */
+    pub fn AddNote(&mut self,newnote: String) -> usize {
+        self.notes.push(newnote);
+        self.notes.len()
+    }
+    /** @brief Set the ith note (1-based!).  
+      *
+      * Updates the text of the specificed
+      * note.  Returns true if the note was updated or false if the
+      * index was out of range.
+      *   @param i The note index.  The first note is at index 1, not 0!.
+      *   @param note The new text for the note.
+      */
+    pub fn  SetNote(&mut self,i: usize,note: String) -> bool {
+        if i == 0 || i > self.notes.len() {
+            false
+        } else {
+            self.notes[i-1] = note;
+            true
+        }
+    }
+    /** @brief Fetch a print option.  
+      *
+      * Returns the value of a specified print
+      * option or the empty string if the print option was not found.
+      *   @param key The name of the print option.
+      */
+    pub fn GetPrintOption(&self,key: String) -> Option<String>
+    {
+        self.print_options.get(&key).cloned()
+    }
+    /** @brief Set a print option.  
+      *
+      * Sets the value of a print option.  Creates a
+      * new hash table element if the specified print option does not
+      * already exist.
+      *  @param key The name of the print option to be set.
+      *  @param value The value to set the print option to.
+      */
+    pub fn SetPrintOption(&mut self,key: String,value: String) {
+        self.print_options.insert(key,value);
+    }
+    /** @brief Write out a Time Table System to a new file.  
+      *
+      * The current contents
+      * of the time table is written to a new time table file. Returns 
+      * true if successful and false if not.
+      *  @param filename The name of the file to write (if empty, use
+      *    existing name, if available).
+      *  @param setfilename Change the filename if true.
+      *  @param outmessage Pointer to a pointer to receive any error
+      *    messages for any errors that might occur.
+      */
+    pub fn WriteNewTimeTableFile(&mut self,filename: String, 
+                                 setfilename: bool) -> std::io::Result<bool> {
+        Ok(false)
+    }
+    /** @brief Return time scale.
+      */
+    pub fn TimeScale(&self) -> u32 {self.timescale}
+    /** @brief Return time interval.
+      */
+    pub fn TimeInterval(&self) -> u32 {self.timeinterval}
+    /** @brief Return the name of the system.
+      */
+    pub fn Name(&self) -> String {self.name.clone()}
+    /** @brief Return file pathname.
+      */
+    pub fn Filename(&self) -> String {self.filepath.display().to_string()}
+    /** @brief Create a LaTeX file for generating a (hard copy) Employee
+      * Timetable. 
+      *
+      * This method create a LaTeX source file from
+      * the information in the time table structure.  It access various
+      * print options to control how the LaTeX file is generated.
+      *  @param filename The name of the  LaTeX file to create.
+      *  @param outmessage Pointer to a pointer to receive any error
+      *    messages for any errors that might occur.
+      */
+    pub fn CreateLaTeXTimetable(&self,filename: String) -> std::io::Result<bool> {
+        Ok(false)
+    }
+    /* ToDo: interators, private methods */
+    fn ReadNote(inp: &mut BufReader<File>) -> std::io::Result<Option<String>> {
+        let mut buffer: [u8; 1] = [0; 1];
+        loop {
+            let status = inp.read(&mut buffer)?;
+            if status == 0 {return Ok(None);}
+            let ch = buffer[0] as char;
+            if ch == '"' {break;}
+        }
+        let mut EOF: bool = false;
+        let mut result: String = String::new();
+        loop {
+            let mut status = inp.read(&mut buffer)?;
+            if status == 0 {EOF = true;break;}
+            let mut ch = buffer[0] as char;
+            if ch == '"' {break;}
+            if ch == '\\' {
+                status = inp.read(&mut buffer)?;
+                if status == 0 {EOF = true;break;}
+                ch = buffer[0] as char;
+            }
+            result += &ch.to_string();
+        }
+        if EOF {
+            if result.len() > 0 {
+                Ok(Some(result))
+            } else {
+                Ok(None)
+            }
+        } else {
+            Ok(Some(result))
+        }       
     }
 }
 

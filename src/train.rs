@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:30
-//  Last Modified : <251007.1533>
+//  Last Modified : <251008.0952>
 //
 //  Description	
 //
@@ -107,6 +107,7 @@ pub enum StopParseError {
     StorageTrackNameMissing,
     StationIndexMissing,
     CabMissing,
+    CabNameMissing,
     NoteCountMissing,
     NoteIndexMissing,
     ExtraCharacters,
@@ -127,6 +128,8 @@ impl fmt::Display for StopParseError {
                 write!(f, "Missing Station index"),
             StopParseError::CabMissing =>
                 write!(f, "Missing cab"),
+            StopParseError::CabNameMissing =>
+                write!(f, "Missing cab name"),
             StopParseError::NoteCountMissing =>
                 write!(f, "Missing note count"),
             StopParseError::NoteIndexMissing =>
@@ -320,6 +323,105 @@ impl Stop {
             Some((n, m)) => {
                 pos += n + m.len();
                 cab = None;
+            },
+        };
+        pos += 1;
+        let count = match string[pos..].match_indices(&[' ','>']).next() {
+            None => return Err(StopParseError::NoteCountMissing),
+            Some((n, m)) => {
+                let temp = &string[pos..pos+n];
+                pos += n + m.len();
+                match temp.parse::<usize>() {
+                    Err(p) => return Err(StopParseError::NoteCountMissing),
+                    Ok(i) => i,
+                }
+            }
+        };
+        let mut result = Stop::new(stationindex,flag);
+        result.SetLayover(layover);
+        result.SetCab(cab);
+        result.SetStorageTrackName(String::from(stname));
+        for i in 0..count {
+            let note =  match string[pos..].match_indices(&[' ','>']).next() {
+                None => return Err(StopParseError::NoteIndexMissing),
+                Some((n, m)) => {
+                    let temp = &string[pos..pos+n];
+                    pos += n + m.len();
+                    match temp.parse::<usize>() {
+                        Err(p) => return Err(StopParseError::NoteIndexMissing),
+                        Ok(i) => i,
+                    }
+                }
+            };
+            result.AddNote(note);
+        }
+        Ok((result,pos))        
+    }
+    pub fn Read(string: &str,cabs: &CabNameMap) -> Result<(Self, usize), StopParseError> {
+        let mut pos: usize;
+        match string.match_indices("<Stop ").next() {
+            None => return Err(StopParseError::StartSyntaxError),
+            Some((n, m)) => pos = n + m.len(),
+        };
+        let flag = match string[pos..].match_indices(' ').next() {
+            None => return Err(StopParseError::FlagMissing),
+            Some((n, m)) => {
+                let temp = &string[pos..n+pos];
+                pos += n + m.len();
+                match temp {
+                    "Origin" => StopFlagType::Origin,
+                    "Terminate" => StopFlagType::Terminate,
+                    "Transit" => StopFlagType::Transit,
+                    _ => return Err(StopParseError::FlagMissing)
+                }
+            },
+        };
+        let layover = match string[pos..].match_indices(' ').next() {
+            None => return Err(StopParseError::LayoverMissing),
+            Some((n, m)) => {
+                let temp = &string[pos..n+pos];
+                pos += n + m.len();
+                match temp.parse::<f64>() {
+                    Err(p) => return Err(StopParseError::LayoverMissing),
+                    Ok(l) => l,
+                }
+            },
+        };
+        match string[pos..].match_indices('"').next() {
+            None => return Err(StopParseError::StorageTrackNameMissing),
+            Some((n, m)) => pos += n + m.len(),
+        };
+        let stname = match string[pos..].match_indices('"').next() {
+            None => return Err(StopParseError::StorageTrackNameMissing),
+            Some((n, m)) => {
+                let temp = &string[pos..n+pos];
+                pos += n + m.len();
+                temp
+            },
+        };
+        pos += 1;
+        let stationindex = match string[pos..].match_indices(' ').next() {
+            None => return Err(StopParseError::StationIndexMissing),
+            Some((n, m)) => {
+                let temp = &string[pos..n+pos]; 
+                pos += n + m.len();
+                match temp.parse::<usize>() {
+                    Err(p) => return Err(StopParseError::StationIndexMissing),
+                    Ok(i) => i,
+                }
+            },
+        };
+        
+        match string[pos..].match_indices('"').next() {
+            None => return Err(StopParseError::CabNameMissing),
+            Some((n, m)) => pos += n + m.len(),
+        }
+        let cab: Option<Cab> = match string[pos..].match_indices('"').next() {
+            None => return Err(StopParseError::CabNameMissing),
+            Some((n, m)) => {
+                let temp = &string[pos..n+pos];
+                pos += n + m.len();
+                cabs.get(temp).cloned()
             },
         };
         pos += 1;
@@ -770,6 +872,135 @@ impl Train {
                   classnumber: classnumber, notes: notes,
                   departure: departure, stops: stops,
                   startsmile: startsmile}, pos))
+
+    }
+    pub fn Read(string: &str,cabs: &CabNameMap) -> Result<Self, TrainParseError> {
+        let mut pos: usize;
+        match string.match_indices("<Train \"").next() {
+            None => return Err(TrainParseError::StartSyntaxError),
+            Some((n, m)) => pos = n + m.len(),
+        };
+        let name = match string[pos..].match_indices('"').next() {
+            None => return Err(TrainParseError::MissingName),
+            Some((n, m)) => {
+                let temp = &string[pos..n+pos];
+                pos += n + m.len();
+                temp
+            },
+        };
+        match string[pos..].match_indices('"').next() {
+            None => return Err(TrainParseError::MissingNumber),
+            Some((n, m)) => pos += n + m.len(),
+        };
+        let number = match string[pos..].match_indices('"').next() {
+            None => return Err(TrainParseError::MissingNumber),
+            Some((n, m)) => {
+                let temp = &string[pos..n+pos];
+                pos += n + m.len();
+                temp
+            },
+        };
+        pos += 1;
+        let speed = match string[pos..].match_indices(&[' ','\n','\t']).next() {
+            None => return Err(TrainParseError::MissingSpeed),
+            Some((n, m)) => {
+                let temp = &string[pos..pos+n];
+                pos += n + m.len();
+                match temp.parse::<u32>() {
+                    Err(p) => return Err(TrainParseError::MissingSpeed),
+                    Ok(s) => s,
+                }
+            }
+        };
+        let classnumber = match string[pos..].match_indices(&[' ','\n','\t']).next() {
+            None => return Err(TrainParseError::MisingClassNumber),
+            Some((n, m)) => {
+                let temp = &string[pos..pos+n];
+                pos += n + m.len();
+                match temp.parse::<u32>() {
+                    Err(p) => return Err(TrainParseError::MisingClassNumber),
+                    Ok(s) => s,
+                }
+            }
+        };
+        let departure = match string[pos..].match_indices(&[' ','\n','\t']).next() {
+            None => return Err(TrainParseError::MissingDeparture),
+            Some((n, m)) => {
+                let temp = &string[pos..pos+n];
+                pos += n + m.len();
+                match temp.parse::<u32>() {
+                    Err(p) => return Err(TrainParseError::MissingDeparture),
+                    Ok(s) => s,
+                }
+            }
+        };
+        let startsmile = match string[pos..].match_indices(&[' ','\n','\t']).next() {
+            None => return Err(TrainParseError::MissingStartSMile),
+            Some((n, m)) => {
+                let temp = &string[pos..pos+n];
+                pos += n + m.len();
+                match temp.parse::<f64>() {
+                    Err(p) => return Err(TrainParseError::MissingStartSMile),
+                    Ok(s) => s,
+                }
+            }
+        };
+        let notecount = match string[pos..].match_indices(&[' ','\n','\t']).next() {
+            None => return Err(TrainParseError::MissingNoteCount),
+            Some((n, m)) => {
+                let temp = &string[pos..pos+n];
+                pos += n + m.len();
+                match temp.parse::<usize>() {
+                    Err(p) => return Err(TrainParseError::MissingNoteCount),
+                    Ok(s) => s,
+                }
+            }
+        };
+        let mut notes: Vec<usize> = Vec::new();
+        for i in 0..notecount {
+            let note = match string[pos..].match_indices(&[' ','\n','\t']).next() {
+                None => return Err(TrainParseError::MissingNoteCount),
+                Some((n, m)) => {
+                    let temp = &string[pos..pos+n];
+                    pos += n + m.len();
+                    match temp.parse::<usize>() {
+                        Err(p) => return Err(TrainParseError::MissingNoteCount),
+                        Ok(s) => s,
+                    }
+                }
+            };
+            notes.push(note);
+        }
+        let stopcount = match string[pos..].match_indices(&[' ','\n','\t']).next() {
+            None => return Err(TrainParseError::MissingStopCount),
+            Some((n, m)) => {
+                let temp = &string[pos..pos+n];
+                pos += n + m.len();
+                match temp.parse::<usize>() {
+                    Err(p) => return Err(TrainParseError::MissingStopCount),
+                    Ok(s) => s,
+                }
+            }
+        };
+        let mut stops: StopVector = Vec::new();
+        for istop in 0..stopcount {
+            let stop = match Stop::Read(&string[pos..],cabs) {
+                        Err(p) => return Err(TrainParseError::MissingStop),
+                        Ok((s,p)) => {
+                            pos += p;
+                            s
+                        },
+            };
+            stops.push(stop);
+        }
+        match string[pos..].match_indices('>').next() {
+            None => return Err(TrainParseError::MissingBracket),
+            Some((n,m)) => /* pos += n+m.len() */ (),
+        };
+        Ok(Self {name: String::from(name), number: String::from(number), speed: speed, 
+                  classnumber: classnumber, notes: notes,
+                  departure: departure, stops: stops,
+                  startsmile: startsmile})
 
     }
 }
