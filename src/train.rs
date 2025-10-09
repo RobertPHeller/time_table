@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:30
-//  Last Modified : <251008.0952>
+//  Last Modified : <251009.1142>
 //
 //  Description	
 //
@@ -191,7 +191,7 @@ impl Stop {
       * ## Parameters:
       * - newcab The new cab value.
       */
-    pub fn SetCab(&mut self, newcab: Option<Cab>) {self.cab = newcab;}
+    pub fn SetCab(&mut self, newcab: Option<&Cab>) {self.cab = newcab.cloned();}
     /** Return the number of notes.
       */
     pub fn NumberOfNotes(&self) -> usize {self.notes.len()}
@@ -339,7 +339,7 @@ impl Stop {
         };
         let mut result = Stop::new(stationindex,flag);
         result.SetLayover(layover);
-        result.SetCab(cab);
+        result.SetCab(cab.as_ref());
         result.SetStorageTrackName(String::from(stname));
         for i in 0..count {
             let note =  match string[pos..].match_indices(&[' ','>']).next() {
@@ -438,7 +438,7 @@ impl Stop {
         };
         let mut result = Stop::new(stationindex,flag);
         result.SetLayover(layover);
-        result.SetCab(cab);
+        result.SetCab(cab.as_ref());
         result.SetStorageTrackName(String::from(stname));
         for i in 0..count {
             let note =  match string[pos..].match_indices(&[' ','>']).next() {
@@ -671,7 +671,7 @@ impl Train {
       *  @param istop The stop number to update.
       *  @param cab The new cab.
       */
-    pub fn UpdateStopCab(&mut self,istop: usize,cab: Option<Cab>) {
+    pub fn UpdateStopCab(&mut self,istop: usize,cab: Option<&Cab>) {
         match self.stops.get_mut(istop) {
             None => (),
             Some(stop) => stop.SetCab(cab),

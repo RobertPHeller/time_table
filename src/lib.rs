@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251008.1511>
+//  Last Modified : <251009.1524>
 //
 //  Description	
 //
@@ -314,7 +314,13 @@ pub enum ConstructorError {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AddTrainError {
-    TempError,
+    EmptyStopList,
+    DuplicateTrain,
+    RangeError(String),
+    BadStationNumber(usize),
+    DuplicateStorageIsAt(String,String,String),
+    DuplicateStorageAt(String,String),
+
 }
 
 #[derive(Debug, Clone, PartialEq)] 
@@ -569,9 +575,9 @@ impl TimeTableSystem {
     pub fn IthStation(&self, i: usize) -> Option<&Station> {
         self.stations.get(i)
     }
-    //pub fn IthStationMut(&mut self, i: usize) -> Option<&Station> {
-    //    self.stations.get_mut(i)
-    //}
+    pub fn IthStationMut(&mut self, i: usize) -> Option<&mut Station> {
+        self.stations.get_mut(i)
+    }
     /** @brief Return the Ith station name. 
       *
       * Returns the NULL pointer if the index
@@ -650,7 +656,7 @@ impl TimeTableSystem {
       *    @param i The index of the station to be updated.
       *    @param name The name for the new storage track.
       */
-    pub fn AddStorageTrack(&mut self,i: usize,name: String) -> Option<&mut StorageTrack> {
+    pub fn AddStorageTrack(&mut self,i: usize,name: &String) -> Option<&mut StorageTrack> {
         match self.stations.get_mut(i) {
             None => None,
             Some(s) => s.AddStorageTrack(name)
@@ -666,13 +672,13 @@ impl TimeTableSystem {
       *    @param i The index of the station to be updated.
       *    @param name The name of the storage track.
       */
-    pub fn FindStorageTrack(&self,i: usize,name: String) -> Option<&StorageTrack> {
+    pub fn FindStorageTrack(&self,i: usize,name: &String) -> Option<&StorageTrack> {
         match self.stations.get(i) {
             None => None,
             Some(s) => s.FindStorageTrack(name),
         }
     }
-    pub fn FindStorageTrack_mut(&mut self,i: usize,name: String) -> Option<&mut StorageTrack> {
+    pub fn FindStorageTrack_mut(&mut self,i: usize,name: &String) -> Option<&mut StorageTrack> {
         match self.stations.get_mut(i) {
             None => None,
             Some(s) => s.FindStorageTrack_mut(name),
@@ -687,15 +693,17 @@ impl TimeTableSystem {
       *   @param name The name of the cab.
       *   @param color The color of the cab.
       */
-    pub fn AddCab(&mut self,name: String,color: String) -> Cab {
-        match self.FindCab(name.clone()) {
-            None => {
-                let newCab = Cab::new(name.clone(),color);
-                self.cabs.insert(name.clone(),newCab.clone());
-                newCab
-            },
-            Some(c) => c,
-        }
+    pub fn AddCab(&mut self,name: String,color: String) -> &Cab {
+        self.cabs.entry(name.clone()).or_insert(Cab::new(name.clone(),color))
+    }
+    /** @brief Find a cab (by name).  
+      *
+      * Returns the pointer to the named cab or NULL
+      * if the cab was not found.
+      *   @param name The cab name to look for.
+      */
+    pub fn FindCab(&self,name: &String) -> Option<&Cab> {
+        self.cabs.get(name)
     }
     /** @brief The nymber of cabs.
       */
@@ -719,8 +727,21 @@ impl TimeTableSystem {
       */
     pub fn AddTrain(&mut self,name: String,number: String,speed: u32, 
                     classnumber: u32, departure: u32, start: usize, 
-                    end: usize) -> Result<Train,AddTrainError> {
-        Err(AddTrainError::TempError)
+                    iend: isize) -> Result<&Train,AddTrainError> {
+        let mut end: usize;
+        if iend < 0 {
+            end = self.NumberOfStations()-1;
+            if start == end {end = 0;}
+        } else {
+            end = iend as usize;
+        }
+        if start == end {
+            Err(AddTrainError::EmptyStopList)
+        } else {
+            let startsmile = self.stations[start].SMile();
+            let newTrain = Train::new(name,number.clone(),speed,classnumber,departure,startsmile,start,end);
+            Ok(self.trains.entry(number).or_insert(newTrain))
+        }
     }
     /** @brief Add a train to the system, long version (includes storage track
       * checking).  
@@ -748,8 +769,276 @@ impl TimeTableSystem {
                                layoverVector: &DoubleVector,
                                cabnameVector: &StringList,
                                storageTrackVector: &StringList) 
-                -> Result<Train,AddTrainError> {
-        Err(AddTrainError::TempError)
+                -> Result<&Train,AddTrainError> {
+        match self.FindTrainByNumber(number.clone()) {
+            /*----------------------------------------------------------
+             * Duplicate train check.
+             *----------------------------------------------------------*/
+            Some(t) => return Err(AddTrainError::DuplicateTrain),
+            None => {
+                /*----------------------------------------------------------
+                 * Empty stop list  check.
+                 *----------------------------------------------------------*/
+                if start == end {
+                    return Err(AddTrainError::EmptyStopList)
+                } else {
+                    /*-----------------------------------------------------------
+                     * Storage track occupancy check.  Traverse the train's 
+                     * travel, making sure the storage tracks it will use are
+                     * available.
+                     *-----------------------------------------------------------*/
+
+                    let incr: bool;
+                    let nstops: usize;
+                    if start < end {
+                        incr = true;
+                        nstops = (end-start)+1;
+                    } else {
+                        incr = false;
+                        nstops = (start-end)+1;
+                    }
+                    /*----------------------------------------------------------
+                     * Range check: make sure the layover, cabname, and storage track
+                     * vectors are the right size
+                     *----------------------------------------------------------*/
+                    if layoverVector.len() != nstops ||
+                       cabnameVector.len() != nstops ||
+                       storageTrackVector.len() != nstops {
+                        return Err(AddTrainError::RangeError(
+                            if layoverVector.len() != nstops {
+                                String::from("layover vector")
+                            } else if cabnameVector.len() != nstops {
+                                String::from("cabname vector")
+                            } else if storageTrackVector.len() != nstops {
+                                String::from("storage track vector")
+                            } else {
+                                String::new()
+                            }));
+                    }
+                    // for (istop = start,i=0; i < nstops; istop += inxt,i++) {
+                    let mut istop: usize = start;
+                    let mut layoverIter = layoverVector.iter();
+                    //let mut cabnameIter = cabnameVector.iter();
+                    let mut storageTrackIter = storageTrackVector.iter();
+                    let mut oldDepart: f64 = -1.0;
+                    let mut oldSmile:  f64 = -1.0;
+                    for i in 0..nstops {
+                        let layover = *layoverIter.next().unwrap();
+                        let station = match self.IthStation(istop) {
+                            Some(s) => s,
+                            None => 
+                                return Err(AddTrainError::BadStationNumber(istop)),
+                        };
+                        let smile = station.SMile();
+                        let arrival: f64;
+                        if oldDepart >= 0.0 {
+                            arrival = oldDepart + 
+                                ((smile - oldSmile).abs() * (speed as f64 / 60.0));
+                        } else {
+                            arrival = departure as f64 / 60.0;
+                        }
+                        let depart = arrival + layover;
+                        oldDepart = depart;
+                        oldSmile  = smile; 
+                        let storageTrackName: &String = storageTrackIter.next().unwrap();
+                        if storageTrackName.len()> 0 {
+                            let storage = station.FindStorageTrack(storageTrackName);
+                            let rStation = match station.DuplicateStationIndex() {
+                                None => None,
+                                Some(rStationIndex) =>
+                                    self.IthStation(rStationIndex),
+                            };
+                            let rStorage = match rStation {
+                                None => None,
+                                Some(rs) => rs.FindStorageTrack(storageTrackName),
+                            };
+                            if istop == start {
+                                match storage {
+                                    None => (),
+                                    Some(s) => match s.IncludesTime(departure as f64 / 60.0) {
+                                        None => (),
+                                        Some(o) => {
+                                            let tn2 = o.TrainNum2();
+                                            if tn2.len() > 0 {
+                                                return Err(AddTrainError::DuplicateStorageIsAt(storageTrackName.to_string(),tn2,station.Name()));
+                                            }
+                                        }
+                                    }
+                                };
+                                match rStorage {
+                                    None => (),
+                                    Some(s) => match s.IncludesTime(departure as f64 / 60.0) {
+                                        None => (),
+                                        Some(o) => {
+                                            let tn2 = o.TrainNum2();
+                                            if tn2.len() > 0 {
+                                                return Err(AddTrainError::DuplicateStorageIsAt(storageTrackName.to_string(),tn2,rStation.unwrap().Name()));
+                                            }
+                                        },
+                                    },
+                                };
+                            } else if istop == end {
+                                match storage {
+                                    None => (),
+                                    Some(s) => match s.IncludesTime(arrival) {
+                                        None => (),
+                                        Some(o) => {
+                                            let tn = o.TrainNum();
+                                            if tn.len() > 0 {
+                                                return Err(AddTrainError::DuplicateStorageIsAt(storageTrackName.to_string(),tn,station.Name()));
+                                            }
+                                        }
+                                    }
+                                };
+                                match rStorage {
+                                    None => (),
+                                    Some(s) => match s.IncludesTime(arrival) {
+                                        None => (),
+                                        Some(o) => {
+                                            let tn = o.TrainNum();
+                                            if tn.len() > 0 {
+                                                return Err(AddTrainError::DuplicateStorageIsAt(storageTrackName.to_string(),tn,rStation.unwrap().Name()));
+                                            }
+                                        }
+                                    }
+                                };
+                            } else if layover > 0.0 && storage.is_some() {
+                                let o1 = storage.unwrap().IncludesTime(arrival);
+                                let o2 = storage.unwrap().IncludesTime(depart);
+                                if o1.is_some() || o2.is_some() {
+                                    return Err(AddTrainError::DuplicateStorageAt(storageTrackName.to_string(),station.Name()));
+                                }
+                                match rStorage {
+                                    None => (),
+                                    Some(rs) => {
+                                        let o1 = rs.IncludesTime(arrival);
+                                        let o2 = rs.IncludesTime(depart);
+                                        if o1.is_some() || o2.is_some() {
+                                            return Err(AddTrainError::DuplicateStorageAt(storageTrackName.to_string(),rStation.unwrap().Name()));
+                                        }
+                                    },
+                                };
+                            }
+                        }
+                        if incr {
+                            istop += 1;
+                        } else {
+                            istop -= 1;
+                        }
+                    }                    
+                    /*-------------------------------------------------------------
+                     * Create and store the train.
+                     *-------------------------------------------------------------*/
+                    let startsmile = self.stations[start].SMile();
+                    let mut newTrain = Train::new(name,number.clone(),speed,classnumber,departure,startsmile,start,end);
+                    /*-------------------------------------------------------------
+                     * Process the layovers, cabnames, and storage tracks.
+                     *-------------------------------------------------------------*/
+                    // for (istop = start,i=0; i < nstops; istop += inxt,i++) {
+                    let mut istop: usize = start;
+                    let mut layoverIter = layoverVector.iter();
+                    let mut cabnameIter = cabnameVector.iter();
+                    let mut storageTrackIter = storageTrackVector.iter();
+                    let mut oldDepart: f64 = -1.0;
+                    let mut oldSmile:  f64 = -1.0;
+                    for i in 0..nstops {
+                        let layover = *layoverIter.next().unwrap();
+                        newTrain.UpdateStopLayover(istop,layover);
+                        let cabName = cabnameIter.next().unwrap();
+                        if cabName.len() > 0 {
+                            let cab = self.FindCab(cabName).unwrap();
+                            newTrain.UpdateStopCab(istop,Some(cab));
+                        } else {
+                            newTrain.UpdateStopCab(istop,None);
+                        }
+                        let storageTrackName = storageTrackIter.next().unwrap();
+                        let station = self.IthStation(istop).unwrap();
+                        let smile = station.SMile();
+                        let arrival: f64;
+                        if oldDepart >= 0.0 {
+                            arrival = oldDepart + ((smile - oldSmile).abs() * (speed as f64 / 60.0));
+                        } else {
+                            arrival = departure as f64 / 60.0;
+                        }
+                        let depart = arrival + layover;
+                        oldDepart = depart;
+                        oldSmile  = smile;
+                        if storageTrackName.len() > 0 {
+                            Self::UpdateTrainStorageAtStop(istop,start,end,
+                                                           &mut self.stations,
+                                                           storageTrackName,
+                                                           arrival,depart,
+                                                           layover,
+                                                           &mut newTrain)?;
+                        }
+                        if incr {
+                            istop += 1;
+                        } else {
+                            istop -= 1;
+                        }
+                    }
+                    Ok(self.trains.entry(number).or_insert(newTrain))
+                }
+            },
+        }
+    }
+    fn UpdateTrainStorageAtStop(istop: usize, start: usize, end: usize,
+                                stations: &mut StationVector,
+                                storageTrackName: &String,
+                                arrival: f64, depart: f64,layover: f64,
+                                newTrain: &mut Train) 
+                        -> Result<(),AddTrainError> {
+        let station = stations.get_mut(istop).unwrap();
+        let rStation = match station.DuplicateStationIndex() {
+            None => None,
+            Some(rsI) => stations.get_mut(rsI),
+        };
+        let storage  = station.FindStorageTrack_mut(storageTrackName);
+        let rStorage = match rStation {
+            None => None,
+            Some(rs) => rs.FindStorageTrack_mut(storageTrackName),
+        };
+        if istop == start {
+            match storage {
+                None => (),
+                Some(storage) => {
+                    newTrain.SetOriginStorageTrack(storageTrackName.to_string());
+                    let occupied = storage.IncludesTime(arrival);
+                    match occupied {
+                        None => {
+                            storage.StoreTrain(String::new(),0.0,arrival,newTrain.Number());
+                        },
+                        Some(occupied) => {
+                            let from = occupied.From();
+                            let to   = occupied.Until();
+                            storage.UpdateStoredTrain2(from,to,newTrain.Number());
+                            storage.UpdateStoredTrainDeparture(from,to,arrival);
+                        },
+                    }
+                },
+            }
+            match rStorage {
+                None => (),
+                Some(rStorage) => {
+                    let occupied = rStorage.IncludesTime(arrival);
+                    match occupied {
+                        None => {
+                            rStorage.StoreTrain(String::new(),0.0,arrival,
+                                                newTrain.Number());
+                        },
+                        Some(occupied) => {
+                            let from = occupied.From();
+                            let to   = occupied.Until();
+                            rStorage.UpdateStoredTrain2(from,to,newTrain.Number());
+                            rStorage.UpdateStoredTrainDeparture(from,to,arrival);
+                        }
+                    }
+                }
+            }
+        } else if istop == end {
+        } else if layover > 0.0 && storage.is_some() {
+        }
+        Ok(())
     }
     /**
       * @brief Delete a train.  
@@ -764,22 +1053,13 @@ impl TimeTableSystem {
     pub fn DeleteTrain(&mut self,number: String) -> Result<(),DeleteTrainError> {
         Ok(())
     }
-    /** @brief Find a cab (by name).  
-      *
-      * Returns the pointer to the named cab or NULL
-      * if the cab was not found.
-      *   @param name The cab name to look for.
-      */
-    pub fn FindCab(&self,name: String) -> Option<Cab> {
-        None
-    }
     /** @brief Find a train by name.
       *
       * Returns the pointer to the named train or
       * NULL if the train was not found.
       *   @param name The train name to look for.
       */
-    pub fn FindTrainByName(&self,name: String) -> Option<Train> {
+    pub fn FindTrainByName(&self,name: String) -> Option<&Train> {
         None
     }
     /** @brief Find a train by number (or symbol). 
@@ -788,7 +1068,7 @@ impl TimeTableSystem {
       * train or NULL if the train was not found.
       *   @param number The train number (or symbol) to look for.
       */
-    pub fn FindTrainByNumber(&self, number: String) -> Option<Train> {
+    pub fn FindTrainByNumber(&self, number: String) -> Option<&Train> {
         None
     }
     /** @brief Return the number of trains.

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:04
-//  Last Modified : <251006.1524>
+//  Last Modified : <251009.1127>
 //
 //  Description	
 //
@@ -768,25 +768,25 @@ impl Station {
       * ## Parameters:
       * - name_ The name of the storage track.
       */
-    pub fn AddStorageTrack(&mut self, name_: String) -> Option<&mut StorageTrack> {
-        if self.FindStorageTrack(name_.clone()).is_some() {return None;}
-        let newtrack = StorageTrack::new(name_.clone());
-        self.storageTracks.insert(name_.clone(),newtrack);
-        self.storageTracks.get_mut(&name_)
+    pub fn AddStorageTrack(&mut self, name_: &String) -> Option<&mut StorageTrack> {
+        if self.FindStorageTrack(name_).is_some() {return None;}
+        let newtrack = StorageTrack::new(name_.to_string());
+        self.storageTracks.insert(name_.to_string(),newtrack);
+        self.storageTracks.get_mut(name_)
     }
     /** Find a storage track by name.
       * ## Parameters:
       * - name The name of the storage track.
       */
-    pub fn FindStorageTrack(&self,name: String) -> Option<&StorageTrack> {
-        self.storageTracks.get(&name)
+    pub fn FindStorageTrack(&self,name: &String) -> Option<&StorageTrack> {
+        self.storageTracks.get(name)
     }
     /** Find a storage track by name.
       * ## Parameters:
       * - name The name of the storage track.
       */
-    pub fn FindStorageTrack_mut(&mut self,name: String) -> Option<&mut StorageTrack> {
-        self.storageTracks.get_mut(&name)
+    pub fn FindStorageTrack_mut(&mut self,name: &String) -> Option<&mut StorageTrack> {
+        self.storageTracks.get_mut(name)
     }
     /** Find track a train is stored on.
       * ## Parameters:
