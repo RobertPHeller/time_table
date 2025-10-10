@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251010.0900>
+//  Last Modified : <251010.0943>
 //
 //  Description	
 //
@@ -325,6 +325,9 @@ pub enum AddTrainError {
 
 #[derive(Debug, Clone, PartialEq)] 
 pub enum DeleteTrainError {
+    NoSuchTrain(String),
+    InternalMissingOcc(String),
+    
 }
 
 impl TimeTableSystem {
@@ -770,7 +773,7 @@ impl TimeTableSystem {
                                cabnameVector: &StringList,
                                storageTrackVector: &StringList) 
                 -> Result<&Train,AddTrainError> {
-        match self.FindTrainByNumber(number.clone()) {
+        match self.FindTrainByNumber(&number) {
             /*----------------------------------------------------------
              * Duplicate train check.
              *----------------------------------------------------------*/
@@ -1097,7 +1100,7 @@ impl TimeTableSystem {
       *      for any errors that might occur.
       */
     pub fn DeleteTrain(&mut self,number: String) -> Result<(),DeleteTrainError> {
-        match self.FindTrainByNumber(number.clone()) {
+        match self.trains.get_mut(&number) {
             None => Err(DeleteTrainError::NoSuchTrain(number.clone())),
             Some(oldTrain) => {
                 /*-----------------------------------------------------------
@@ -1110,8 +1113,8 @@ impl TimeTableSystem {
                 for istop in 0..oldTrain.NumberOfStops() {
                     let stop = oldTrain.StopI(istop).unwrap();
                     let istation = stop.StationIndex();
-                    let (station, rStation) = match self.stations[istation].DuplicateStationIndex() {
-                        None => (&mut stations[istation], None),
+                    let (station, mut rStation) = match self.stations[istation].DuplicateStationIndex() {
+                        None => (&mut self.stations[istation], None),
                         Some(rsI) => self.stations
                             .get_disjoint_mut([istation, rsI])
                             .map(|[s, r]| (s, Some(r)))
@@ -1130,31 +1133,38 @@ impl TimeTableSystem {
                     oldSmile  = smile;
                     let storageTrackName = stop.StorageTrackName();
                     if storageTrackName.len() == 0 {continue;}
-                    let storage = station.FindStorageTrack_mut(storageTrackName);
+                    let storage = station.FindStorageTrack_mut(&storageTrackName);
                     let rStorage = match rStation {
                         None => None,
-                        Some(rs) => rs.FindStorageTrack_mut(storageTrackName),
+                        Some(ref mut rs) => rs.FindStorageTrack_mut(&storageTrackName),
                     };
                     match stop.Flag() {
                         StopFlagType::Origin => {
-                            let occupied = storage.IncludesTime(departure as f64);
-                            match occupied {
+                            match storage {
                                 None => {
-                                    return Err(DeleteTrainError::InternalMissingOcc(station.Name()));
+                                  return Err(DeleteTrainError::InternalMissingOcc(station.Name()));
                                 },
-                                Some(occupied) => {
-                                    if occupied.From() == occupied.Until() &&
-                                       occupied.From() == departure as f64 &&
-                                       occupied.TrainNum() == number &&
-                                       occupied.TrainNum2() == number {
-                                        storage.RemovedStoredTrain(occupied.From(),occupied.Until());
-                                    } else {
-                                        let from = occupied.From();
-                                        let to   = occupied.Until();
-                                        storage.UpdateStoredTrain2(from,to,occupied.TrainNum());
-                                        storage.UpdateStoredTrainDeparture(from,to,from);
-                                     }
-                                },
+                                Some(storage) => { 
+                                    let occupied = storage.IncludesTime(departure as f64);
+                                    match occupied {
+                                        None => {
+                                            return Err(DeleteTrainError::InternalMissingOcc(station.Name()));
+                                        },
+                                        Some(occupied) => {
+                                            if occupied.From() == occupied.Until() &&
+                                               occupied.From() == departure as f64 &&
+                                               occupied.TrainNum() == number &&
+                                               occupied.TrainNum2() == number {
+                                                storage.RemovedStoredTrain(occupied.From(),occupied.Until());
+                                            } else {
+                                                let from = occupied.From();
+                                                let to   = occupied.Until();
+                                                storage.UpdateStoredTrain2(from,to,occupied.TrainNum());
+                                                storage.UpdateStoredTrainDeparture(from,to,from);
+                                             }
+                                        },
+                                    }
+                                }
                             };
                             match rStorage {
                                 None => (),
@@ -1162,7 +1172,7 @@ impl TimeTableSystem {
                                     let occupied = rStorage.IncludesTime(departure as f64);
                                     match occupied {
                                         None => {
-                                            return Err(DeleteTrainError::InternalMissingOcc(rStation.Name()));
+                                            return Err(DeleteTrainError::InternalMissingOcc(rStation.unwrap().Name()));
                                         },
                                         Some(occupied) => {
                                             if occupied.From() == occupied.Until() &&
@@ -1182,23 +1192,30 @@ impl TimeTableSystem {
                             };
                         },
                         StopFlagType::Terminate => {
-                            let occupied = storage.IncludesTime(arrival);
-                            match occupied {
+                            match storage {
                                 None => {
                                     return Err(DeleteTrainError::InternalMissingOcc(station.Name()));
                                 },
-                                Some(occupied) => {
-                                    if occupied.From() == occupied.Until() &&
-                                       occupied.From() == arrival &&
-                                       occupied.TrainNum() == number &&
-                                       occupied.TrainNum2() == number {
-                                        storage.RemovedStoredTrain(occupied.From(),occupied.Until());
-                                    } else {
-                                        let from = occupied.From();
-                                        let to   = occupied.Until();
-                                        storage.UpdateStoredTrain(from,to,occupied.TrainNum());
-                                        storage.UpdateStoredTrainArrival(from,to,to);
-                                     }
+                                Some(storage) => {
+                                    let occupied = storage.IncludesTime(arrival);
+                                    match occupied {
+                                        None => {
+                                            return Err(DeleteTrainError::InternalMissingOcc(station.Name()));
+                                        },
+                                        Some(occupied) => {
+                                            if occupied.From() == occupied.Until() &&
+                                               occupied.From() == arrival &&
+                                               occupied.TrainNum() == number &&
+                                               occupied.TrainNum2() == number {
+                                                storage.RemovedStoredTrain(occupied.From(),occupied.Until());
+                                            } else {
+                                                let from = occupied.From();
+                                                let to   = occupied.Until();
+                                                storage.UpdateStoredTrain(from,to,occupied.TrainNum());
+                                                storage.UpdateStoredTrainArrival(from,to,to);
+                                             }
+                                        },
+                                    };
                                 },
                             };
                             match rStorage {
@@ -1207,7 +1224,7 @@ impl TimeTableSystem {
                                     let occupied = rStorage.IncludesTime(arrival);
                                     match occupied {
                                         None => {
-                                            return Err(DeleteTrainError::InternalMissingOcc(rStation.Name()));
+                                            return Err(DeleteTrainError::InternalMissingOcc(rStation.unwrap().Name()));
                                         },
                                         Some(occupied) => {
                                             if occupied.From() == occupied.Until() &&
@@ -1228,22 +1245,28 @@ impl TimeTableSystem {
                         },
                         StopFlagType::Transit => {
                             if layover > 0.0 && storage.is_some() {
+                                let storage = storage.unwrap();
                                 let o1 = storage.IncludesTime(arrival);
                                 let o2 = storage.IncludesTime(depart);
                                 if o1 != o2 || o1.is_none() || o2.is_none() {
                                     return Err(DeleteTrainError::InternalMissingOcc(station.Name()));
+                                } else {
+                                    let o1 = o1.unwrap();
+                                    let o2 = o2.unwrap();
+                                    storage.RemovedStoredTrain(o1.From(),o1.Until());
                                 }
-                            } else {
-                                storage.RemovedStoredTrain(o1.From(),o1.Until())
                             }
                             if layover > 0.0 && rStorage.is_some() {
+                                let rStorage = rStorage.unwrap();
                                 let o1 = rStorage.IncludesTime(arrival);
                                 let o2 = rStorage.IncludesTime(depart);
                                 if o1 != o2 || o1.is_none() || o2.is_none() {
-                                    return Err(DeleteTrainError::InternalMissingOcc(rStation.Name()));
+                                    return Err(DeleteTrainError::InternalMissingOcc(rStation.unwrap().Name()));
+                                } else {
+                                    let o1 = o1.unwrap();
+                                    let o2 = o2.unwrap();
+                                    rStorage.RemovedStoredTrain(o1.From(),o1.Until());
                                 }
-                            } else {
-                                rStorage.RemovedStoredTrain(o1.From(),o1.Until())
                             }
                         },
                     };
@@ -1251,7 +1274,7 @@ impl TimeTableSystem {
                 /*
                  * Remove the train from the map.
                  */
-                self.trains.remove(number);
+                self.trains.remove(&number);
                 /*
                  * Delete the train.
                  */
@@ -1266,7 +1289,12 @@ impl TimeTableSystem {
       * NULL if the train was not found.
       *   @param name The train name to look for.
       */
-    pub fn FindTrainByName(&self,name: String) -> Option<&Train> {
+    pub fn FindTrainByName(&self,name: &String) -> Option<&Train> {
+        for train in self.trains.values() {
+            if *train.Name() == *name {
+                return Some(train);
+            }
+        }
         None
     }
     /** @brief Find a train by number (or symbol). 
@@ -1275,8 +1303,8 @@ impl TimeTableSystem {
       * train or NULL if the train was not found.
       *   @param number The train number (or symbol) to look for.
       */
-    pub fn FindTrainByNumber(&self, number: String) -> Option<&Train> {
-        None
+    pub fn FindTrainByNumber(&self, number: &String) -> Option<&Train> {
+        self.trains.get(number)
     }
     /** @brief Return the number of trains.
       */
