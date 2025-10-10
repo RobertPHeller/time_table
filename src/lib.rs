@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251009.2021>
+//  Last Modified : <251009.2123>
 //
 //  Description	
 //
@@ -1097,7 +1097,99 @@ impl TimeTableSystem {
       *      for any errors that might occur.
       */
     pub fn DeleteTrain(&mut self,number: String) -> Result<(),DeleteTrainError> {
-        Ok(())
+        match self.FindTrainByNumber(number.clone()) {
+            None => Err(DeleteTrainError::NoSuchTrain(number.clone())),
+            Some(oldTrain) => {
+                /*-----------------------------------------------------------
+                 * Storage track occupancy cleanup.
+                 *-----------------------------------------------------------*/
+                let departure = oldTrain.Departure();
+                let speed     = oldTrain.Speed();
+                let mut oldDepart: f64 = -1.0;
+                let mut oldSmile: f64 = -1.0;
+                for istop in 0..oldTrain.NumberOfStops() {
+                    let stop = oldTrain.StopI(istop).unwrap();
+                    let istation = stop.StationIndex();
+                    let (station, rStation) = match self.stations[istation].DuplicateStationIndex() {
+                        None => (&mut stations[istation], None),
+                        Some(rsI) => self.stations
+                            .get_disjoint_mut([istation, rsI])
+                            .map(|[s, r]| (s, Some(r)))
+                            .unwrap(),
+                    };
+                    let layover = stop.Layover();
+                    let smile   = station.SMile();
+                    let arrival: f64;
+                    if oldDepart < 0.0 {
+                        arrival = departure as f64;
+                    } else {
+                        arrival = oldDepart + ((smile - oldSmile) * (speed as f64 / 60.0));
+                    }
+                    let depart: f64 = arrival + layover;
+                    oldDepart = depart;
+                    oldSmile  = smile;
+                    let storageTrackName = stop.StorageTrackName();
+                    if storageTrackName.len() == 0 {continue;}
+                    let storage = station.FindStorageTrack_mut(storageTrackName);
+                    let rStorage = match rStation {
+                        None => None,
+                        Some(rs) => rs.FindStorageTrack_mut(storageTrackName),
+                    };
+                    match stop.Flag() {
+                        StopFlagType::Origin => {
+                            let occupied = storage.IncludesTime(departure as f64);
+                            match occupied {
+                                None => {
+                                    return Err(DeleteTrainError::InternalMissingOcc(station.Name()));
+                                },
+                                Some(occupied) => {
+                                    if occupied.From() == occupied.Until() &&
+                                       occupied.From() == departure as f64 &&
+                                       occupied.TrainNum() == number &&
+                                       occupied.TrainNum2() == number {
+                                        storage.RemovedStoredTrain(occupied.From(),occupied.Until());
+                                    } else {
+                                        let from = occupied.From();
+                                        let to   = occupied.Until();
+                                        storage.UpdateStoredTrain2(from,to,occupied.TrainNum());
+                                        storage.UpdateStoredTrainDeparture(from,to,from);
+                                     }
+                                },
+                            };
+                            match rStorage {
+                                None => (),
+                                Some(rStorage) => {
+                                    let occupied = rStorage.IncludesTime(departure as f64);
+                                    match occupied {
+                                        None => {
+                                            return Err(DeleteTrainError::InternalMissingOcc(rStation.Name()));
+                                        },
+                                        Some(occupied) => {
+                                            if occupied.From() == occupied.Until() &&
+                                               occupied.From() == departure as f64 &&
+                                               occupied.TrainNum() == number &&
+                                               occupied.TrainNum2() == number {
+                                                rStorage.RemovedStoredTrain(occupied.From(),occupied.Until());
+                                            } else {
+                                                let from = occupied.From();
+                                                let to   = occupied.Until();
+                                                rStorage.UpdateStoredTrain2(from,to,occupied.TrainNum());
+                                                rStorage.UpdateStoredTrainDeparture(from,to,from);
+                                             }
+                                        },
+                                    };
+                                },
+                            };
+                        },
+                        StopFlagType::Terminate => {
+                        },
+                        StopFlagType::Transit => {
+                        },
+                    };
+                }
+                Ok(())
+            }
+        }
     }
     /** @brief Find a train by name.
       *
