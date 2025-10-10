@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251009.1524>
+//  Last Modified : <251009.2021>
 //
 //  Description	
 //
@@ -835,7 +835,7 @@ impl TimeTableSystem {
                             arrival = oldDepart + 
                                 ((smile - oldSmile).abs() * (speed as f64 / 60.0));
                         } else {
-                            arrival = departure as f64 / 60.0;
+                            arrival = departure as f64;
                         }
                         let depart = arrival + layover;
                         oldDepart = depart;
@@ -855,7 +855,7 @@ impl TimeTableSystem {
                             if istop == start {
                                 match storage {
                                     None => (),
-                                    Some(s) => match s.IncludesTime(departure as f64 / 60.0) {
+                                    Some(s) => match s.IncludesTime(departure as f64) {
                                         None => (),
                                         Some(o) => {
                                             let tn2 = o.TrainNum2();
@@ -867,7 +867,7 @@ impl TimeTableSystem {
                                 };
                                 match rStorage {
                                     None => (),
-                                    Some(s) => match s.IncludesTime(departure as f64 / 60.0) {
+                                    Some(s) => match s.IncludesTime(departure as f64) {
                                         None => (),
                                         Some(o) => {
                                             let tn2 = o.TrainNum2();
@@ -958,7 +958,7 @@ impl TimeTableSystem {
                         if oldDepart >= 0.0 {
                             arrival = oldDepart + ((smile - oldSmile).abs() * (speed as f64 / 60.0));
                         } else {
-                            arrival = departure as f64 / 60.0;
+                            arrival = departure as f64;
                         }
                         let depart = arrival + layover;
                         oldDepart = depart;
@@ -969,7 +969,8 @@ impl TimeTableSystem {
                                                            storageTrackName,
                                                            arrival,depart,
                                                            layover,
-                                                           &mut newTrain)?;
+                                                           self.timescale as f64,
+                                                           &mut newTrain);
                         }
                         if incr {
                             istop += 1;
@@ -985,13 +986,15 @@ impl TimeTableSystem {
     fn UpdateTrainStorageAtStop(istop: usize, start: usize, end: usize,
                                 stations: &mut StationVector,
                                 storageTrackName: &String,
-                                arrival: f64, depart: f64,layover: f64,
-                                newTrain: &mut Train) 
-                        -> Result<(),AddTrainError> {
-        let station = stations.get_mut(istop).unwrap();
-        let rStation = match station.DuplicateStationIndex() {
-            None => None,
-            Some(rsI) => stations.get_mut(rsI),
+                                arrival: f64, depart: f64,
+                                layover: f64,infi: f64,
+                                newTrain: &mut Train) {
+        let (station, rStation) = match stations[istop].DuplicateStationIndex() {
+            None => (&mut stations[istop], None),
+            Some(rsI) => stations
+                .get_disjoint_mut([istop, rsI])
+                .map(|[s, r]| (s, Some(r)))
+                .unwrap(),
         };
         let storage  = station.FindStorageTrack_mut(storageTrackName);
         let rStorage = match rStation {
@@ -1036,9 +1039,52 @@ impl TimeTableSystem {
                 }
             }
         } else if istop == end {
+            match storage {
+                None => (),
+                Some(storage) => {
+                    newTrain.SetDestinationStorageTrack(storageTrackName.to_string());
+                    let occupied = storage.IncludesTime(arrival);
+                    match occupied {
+                        None => {
+                            storage.StoreTrain(newTrain.Number(),arrival,infi,String::new());
+                        },
+                        Some(occupied) => {
+                            let from = occupied.From();
+                            let to   = occupied.Until();
+                            storage.UpdateStoredTrain(from,to,newTrain.Number());
+                            storage.UpdateStoredTrainArrival(from,to,arrival);
+                        },
+                    };
+                    match rStorage {
+                        None => (),
+                        Some(rStorage) => {
+                            let occupied = rStorage.IncludesTime(arrival);
+                            match occupied {
+                                None => {
+                                    rStorage.StoreTrain(newTrain.Number(),arrival,infi,String::new());
+                                },
+                                Some(occupied) => {
+                                    let from = occupied.From();
+                                    let to   = occupied.Until();
+                                    rStorage.UpdateStoredTrain(from,to,newTrain.Number());
+                                    rStorage.UpdateStoredTrainArrival(from,to,arrival);
+                                },
+                            }
+                        }
+                    };
+                },
+            };
         } else if layover > 0.0 && storage.is_some() {
+            newTrain.SetTransitStorageTrack(istop,storageTrackName.to_string());
+            let storage = storage.unwrap();
+            storage.StoreTrain(newTrain.Number(),arrival,depart,newTrain.Number());
+            match rStorage {
+                None => (),
+                Some(rStorage) => {
+                    rStorage.StoreTrain(newTrain.Number(),arrival,depart,newTrain.Number());
+                },
+            };
         }
-        Ok(())
     }
     /**
       * @brief Delete a train.  
