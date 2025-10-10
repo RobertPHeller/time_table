@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251009.2123>
+//  Last Modified : <251010.0900>
 //
 //  Description	
 //
@@ -1182,11 +1182,80 @@ impl TimeTableSystem {
                             };
                         },
                         StopFlagType::Terminate => {
+                            let occupied = storage.IncludesTime(arrival);
+                            match occupied {
+                                None => {
+                                    return Err(DeleteTrainError::InternalMissingOcc(station.Name()));
+                                },
+                                Some(occupied) => {
+                                    if occupied.From() == occupied.Until() &&
+                                       occupied.From() == arrival &&
+                                       occupied.TrainNum() == number &&
+                                       occupied.TrainNum2() == number {
+                                        storage.RemovedStoredTrain(occupied.From(),occupied.Until());
+                                    } else {
+                                        let from = occupied.From();
+                                        let to   = occupied.Until();
+                                        storage.UpdateStoredTrain(from,to,occupied.TrainNum());
+                                        storage.UpdateStoredTrainArrival(from,to,to);
+                                     }
+                                },
+                            };
+                            match rStorage {
+                                None => (),
+                                Some(rStorage) => {
+                                    let occupied = rStorage.IncludesTime(arrival);
+                                    match occupied {
+                                        None => {
+                                            return Err(DeleteTrainError::InternalMissingOcc(rStation.Name()));
+                                        },
+                                        Some(occupied) => {
+                                            if occupied.From() == occupied.Until() &&
+                                               occupied.From() == arrival &&
+                                               occupied.TrainNum() == number &&
+                                               occupied.TrainNum2() == number {
+                                                rStorage.RemovedStoredTrain(occupied.From(),occupied.Until());
+                                            } else {
+                                                let from = occupied.From();
+                                                let to   = occupied.Until();
+                                                rStorage.UpdateStoredTrain(from,to,occupied.TrainNum());
+                                                rStorage.UpdateStoredTrainArrival(from,to,to);
+                                             }
+                                        },
+                                    };
+                                },
+                            };
                         },
                         StopFlagType::Transit => {
+                            if layover > 0.0 && storage.is_some() {
+                                let o1 = storage.IncludesTime(arrival);
+                                let o2 = storage.IncludesTime(depart);
+                                if o1 != o2 || o1.is_none() || o2.is_none() {
+                                    return Err(DeleteTrainError::InternalMissingOcc(station.Name()));
+                                }
+                            } else {
+                                storage.RemovedStoredTrain(o1.From(),o1.Until())
+                            }
+                            if layover > 0.0 && rStorage.is_some() {
+                                let o1 = rStorage.IncludesTime(arrival);
+                                let o2 = rStorage.IncludesTime(depart);
+                                if o1 != o2 || o1.is_none() || o2.is_none() {
+                                    return Err(DeleteTrainError::InternalMissingOcc(rStation.Name()));
+                                }
+                            } else {
+                                rStorage.RemovedStoredTrain(o1.From(),o1.Until())
+                            }
                         },
                     };
                 }
+                /*
+                 * Remove the train from the map.
+                 */
+                self.trains.remove(number);
+                /*
+                 * Delete the train.
+                 */
+                /* (no pointers to free in rust...) */
                 Ok(())
             }
         }
