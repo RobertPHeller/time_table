@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251011.2215>
+//  Last Modified : <251012.0753>
 //
 //  Description	
 //
@@ -1675,40 +1675,40 @@ impl TimeTableSystem {
             if !classlist.contains(&classnumber) {
                 classlist.push(classnumber);
             }
-            classlist.sort_unstable();
-            // For each class, collect the trains for that class as three lists
-            // (all, forward, backward).  Generate a table for each class.
-            for classI in classlist.iter() {
-                let mut fcl: TrainList = Vec::new();
-                let mut bcl: TrainList = Vec::new();
-                let mut acl: TrainList = Vec::new();
-                for tr in forwardTrains.iter() {
-                    if tr.ClassNumber() == *classI {fcl.push(tr);}
-                }
-                for tr in backwardTrains.iter() {
-                    if tr.ClassNumber() == *classI {bcl.push(tr);}
-                }
-                for tr in allTrains.iter() {
-                    if tr.ClassNumber() == *classI {acl.push(tr);}
-                }
-                // Get or create group header
-                let temp = format!("Group,{},ClassHeader",*classI);
-                let classHeader = match self.GetPrintOption(temp.as_str()) {
-                    None => format!("Class {} trains",*classI),
-                    Some(s) => if s == "" {
-                        format!("Class {} trains",*classI)
-                    } else {s.clone()},
-                };
-                // Get or create user content. 
-                let temp = format!("Group,{},SectionTOP",*classI);
-                let sectionTOP = match self.GetPrintOption(temp.as_str()) {
-                    None => "",
-                    Some(s) => s,
-                };
-                // Call helper method to generate the table.
-                self.MakeTimeTableOneTable(fp,&acl,&fcl,&bcl,
-                                           classHeader.as_str(),sectionTOP)?;
+        }
+        classlist.sort_unstable();
+        // For each class, collect the trains for that class as three lists
+        // (all, forward, backward).  Generate a table for each class.
+        for classI in classlist.iter() {
+            let mut fcl: TrainList = Vec::new();
+            let mut bcl: TrainList = Vec::new();
+            let mut acl: TrainList = Vec::new();
+            for tr in forwardTrains.iter() {
+                if tr.ClassNumber() == *classI {fcl.push(tr);}
             }
+            for tr in backwardTrains.iter() {
+                if tr.ClassNumber() == *classI {bcl.push(tr);}
+            }
+            for tr in allTrains.iter() {
+                if tr.ClassNumber() == *classI {acl.push(tr);}
+            }
+            // Get or create group header
+            let temp = format!("Group,{},ClassHeader",*classI);
+            let classHeader = match self.GetPrintOption(temp.as_str()) {
+                None => format!("Class {} trains",*classI),
+                Some(s) => if s == "" {
+                    format!("Class {} trains",*classI)
+                } else {s.clone()},
+            };
+            // Get or create user content. 
+            let temp = format!("Group,{},SectionTOP",*classI);
+            let sectionTOP = match self.GetPrintOption(temp.as_str()) {
+                None => "",
+                Some(s) => s,
+            };
+            // Call helper method to generate the table.
+            self.MakeTimeTableOneTable(fp,&acl,&fcl,&bcl,
+                                       classHeader.as_str(),sectionTOP)?;
         }
         Ok(())
     }
