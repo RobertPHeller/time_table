@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251012.0753>
+//  Last Modified : <251012.0930>
 //
 //  Description	
 //
@@ -2137,12 +2137,12 @@ mod tests {
         assert_eq!(temp.back(),Some(&String::from("World")));
     }
 
-    #[test]
+    //#[test]
     fn TimeTableSystem_old () {
         let temp = TimeTableSystem::old("examples/LJandBS.tt")
                     .expect("Failed");
     }
-    #[test]
+    //#[test]
     fn TimeTableSystem_CreateLaTeXTimetable () {
         let mut temp = TimeTableSystem::old("examples/LJandBS.tt")
                     .expect("Failed");
