@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251012.1538>
+//  Last Modified : <251012.1711>
 //
 //  Description	
 //
@@ -2107,9 +2107,9 @@ impl TimeTableSystem {
                             if strack.len() > 0 {write!(fp,"Tr {}",strack)?;}
                         }
                     },
-                    None => {write!(fp,"&")?;},
+                    None => (),
                 };
-                
+                write!(fp,"&")?;
             }
             // Center (station name).
             write!(fp,"&AR{}hfill{}parbox[t]{{{}stationwidthtwoar}}{{{}}}{}hfill LV",
@@ -2123,8 +2123,8 @@ impl TimeTableSystem {
                             write!(fp,"{}shtime{{{}}}",Self::BACKSLASH,
                                     (st.Departure()+0.5) as u32)?;
                         } else {
-                            let origStop = train.StopI(train.NumberOfStops()-1).unwrap();
-                            let strack = origStop.StorageTrackName();
+                            let destStop = train.StopI(train.NumberOfStops()-1).unwrap();
+                            let strack = destStop.StorageTrackName();
                             if strack.len() > 0 {write!(fp,"Tr {}",strack)?;}
                         }
                     },
@@ -2134,8 +2134,109 @@ impl TimeTableSystem {
             }
             writeln!(fp,"{}{}",Self::BACKSLASH,Self::BACKSLASH)?;
             // Second row: cabs and notes + scale miles.
-            
+            for train in forwardTrains.iter() {
+                match tasF.unwrap().get(&train.Number()) {
+                    Some(st) => {
+                        let nstops = train.NumberOfStops();
+                        for istop in 0..nstops {
+                            let stop = train.StopI(istop).unwrap();
+                            if stop.StationIndex() == istation {
+                                write!(fp,"{}parbox{{{}timecolumnwidth}}{{",
+                                        Self::BACKSLASH,Self::BACKSLASH)?;
+                                match stop.TheCab() {
+                                    None => (),
+                                    Some(cab) => {
+                                        write!(fp,"{}{}{}",cab.Name(),
+                                                Self::BACKSLASH,
+                                                Self::BACKSLASH)?;
+                                    },
+                                };
+                                let nnotes = stop.NumberOfNotes();
+                                for inote in 0..nnotes {
+                                    write!(fp,"{} ",
+                                            stop.Note(inote).unwrap())?;
+                                }
+                                write!(fp,"}}")?;
+                            }
+                        }
+                    },
+                    None => (),
+                };
+                write!(fp,"&")?;
+            }
+            write!(fp,"{}&",(smile+0.5) as u32)?;
+            for train in backwardsTrains.iter() {
+                write!(fp,"&")?;
+                match tasB.unwrap().get(&train.Number()) {
+                    Some(st) => {
+                        let nstops = train.NumberOfStops();
+                        for istop in 0..nstops {
+                            let stop = train.StopI(istop).unwrap();
+                            if stop.StationIndex() == istation {
+                                write!(fp,"{}parbox{{{}timecolumnwidth}}{{",
+                                        Self::BACKSLASH,Self::BACKSLASH)?;
+                                match stop.TheCab() {
+                                    None => (),
+                                    Some(cab) => {
+                                        write!(fp,"{}{}{}",cab.Name(),
+                                                Self::BACKSLASH,
+                                                Self::BACKSLASH)?;
+                                    },
+                                };
+                                let nnotes = stop.NumberOfNotes();
+                                for inote in 0..nnotes {
+                                    write!(fp,"{} ",
+                                            stop.Note(inote).unwrap())?;
+                                }
+                                write!(fp,"}}")?;
+                            }
+                        }
+                    },
+                    None => (),
+                };
+            }
+            writeln!(fp,"{}{}",Self::BACKSLASH,Self::BACKSLASH)?;
+            // Third row: departures / tracks. 
+            for train in forwardTrains.iter() {
+                match tasF.unwrap().get(&train.Number()) {
+                    Some(st) => {
+                        if st.Flag() != StopFlagType::Terminate {
+                            write!(fp,"{}shtime{{{}}}",Self::BACKSLASH,
+                                    (st.Departure()+0.5) as u32)?;
+                        } else {
+                            let destStop = train.StopI(train.NumberOfStops()-1).unwrap();
+                            let strack = destStop.StorageTrackName();
+                            if strack.len() > 0 {write!(fp,"Tr {}",strack)?;}
+                        }
+                    },
+                    None => (),
+                };
+                write!(fp,"&")?;
+            }
+            write!(fp,"&LV{}hfill AR",Self::BACKSLASH)?;
+            for train in backwardsTrains.iter() {
+                write!(fp,"&")?;
+                match tasB.unwrap().get(&train.Number()) {
+                    Some(st) => {
+                        if st.Flag() != StopFlagType::Origin {
+                            write!(fp,"{}shtime{{{}}}",Self::BACKSLASH,
+                                    (st.Arrival()+0.5) as u32)?;
+                        } else {
+                            let origStop = train.StopI(0).unwrap();
+                            let strack = origStop.StorageTrackName();
+                            if strack.len() > 0 {write!(fp,"Tr {}",strack)?;}
+                        }
+                    }
+                    None => (),
+                };
+            }
+            writeln!(fp,"{}{}",Self::BACKSLASH,Self::BACKSLASH)?;
+            writeln!(fp,"{}hline",Self::BACKSLASH)?;
         }
+        writeln!(fp,"{}end{{supertabular}}",Self::BACKSLASH)?;
+        writeln!(fp,"")?;
+        writeln!(fp,"{}vfill",Self::BACKSLASH)?;
+        writeln!(fp,"")?;
         Ok(())
     }
     /**********************************************************************
