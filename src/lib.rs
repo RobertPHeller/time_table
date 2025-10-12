@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251010.0943>
+//  Last Modified : <251011.2215>
 //
 //  Description	
 //
@@ -50,10 +50,12 @@
 pub mod station;
 pub mod cab;
 pub mod train;
+pub mod primio;
 
 use crate::station::*;
 use crate::cab::*;
 use crate::train::*;
+use crate::primio::*;
 use std::collections::HashMap;
 use std::collections::LinkedList;
 use std::path::PathBuf;
@@ -61,7 +63,7 @@ use std::str::FromStr;
 use std::convert::Infallible;
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::BufReader;
+use std::io::{Write,BufReader,BufWriter};
 
 
 /**  @brief A Vector of doubles.
@@ -90,7 +92,7 @@ pub type OptionHashMap = HashMap<String, String>;
   * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
-pub type TrainList =  LinkedList<&'static Train>;
+pub type TrainList<'latex> =  Vec<&'latex Train>;
 
 /** @brief Station times class, used by the LaTeX generator methods.
   *
@@ -327,9 +329,28 @@ pub enum AddTrainError {
 pub enum DeleteTrainError {
     NoSuchTrain(String),
     InternalMissingOcc(String),
+}
+
+#[derive(Debug)] 
+pub enum CreateLaTeXError {
+    NoTrainsError,
+    FileIOError(std::io::Error),
+    GroupSyntaxError(u32),
+    GroupEmpty(u32),
     
 }
 
+impl From<std::io::Error> for CreateLaTeXError {
+    fn from(error: std::io::Error) -> Self {
+        CreateLaTeXError::FileIOError(error)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum GroupMode {
+    NoGrouping,
+    Class,
+}
 impl TimeTableSystem {
     /** @brief The constructor that creates a time table system from an existing
       * file.
@@ -340,14 +361,15 @@ impl TimeTableSystem {
       *   @param outmessage Pointer to a pointer to receive any error 
       *     messages for any errors that might occur.
       */
-    pub fn old(filename: String) -> Result<Self, ConstructorError> {
-        let filepath: PathBuf = match PathBuf::from_str(&filename) {
+    pub fn old(filename: &str) -> Result<Self, ConstructorError> {
+        let filepath: PathBuf = match PathBuf::from_str(filename) {
             Ok(f) => f,
             Err(p) => return Err(ConstructorError::BadFilename(p)),
         };
         let file = match File::open(&filepath) {
             Ok(f) => f,
-            Err(e) => return Err(ConstructorError::CouldNotOpenFile(filename,
+            Err(e) => return Err(ConstructorError::CouldNotOpenFile(
+                                                        filename.to_string(),
                                                             e.to_string())),
         };
         let mut buf_reader = BufReader::new(file);
@@ -358,27 +380,16 @@ impl TimeTableSystem {
                      },
             Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading name"),e.to_string())),
         };
-        let mut line_buffer: String = String::new();
-        match buf_reader.read_line(&mut line_buffer) {
-            Ok(l) => if l == 0 {
-                        return Err(ConstructorError::PrematureEOF(String::from("Reading timescale and timeinterval")));
-                     },
-            Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading timescale and timeinterval"),e.to_string())),
+        name = name.trim().to_string();
+        let timescale: u32 = match ReadU32(&mut buf_reader) {
+            Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Timescale"),e.to_string())),
+            Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Timescale"))),
+            Ok(Some(s)) => s,
         };
-        let mut sp = line_buffer.split(' ');
-        let timescale: u32 = match sp.next() {
-            None => return Err(ConstructorError::MissingTimescale),
-            Some(s) => match s.parse::<u32>() {
-                Ok(t) => t,
-                Err(e) => return Err(ConstructorError::TimescaleParseError(s.to_string(),e.to_string())),
-            }
-        };
-        let timeinterval: u32 = match sp.next() {
-            None => return Err(ConstructorError::MissingTimeinterval),
-            Some(s) => match s.parse::<u32>() {
-                Ok(t) => t,
-                Err(e) => return Err(ConstructorError::TimeintervalParseError(s.to_string(),e.to_string())),
-            }
+        let timeinterval: u32 = match ReadU32(&mut buf_reader) {
+            Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Timeinterval"),e.to_string())),
+            Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Timeinterval"))),
+            Ok(Some(s)) => s,
         };
         let mut this = Self {name: name, filepath: filepath, 
                              timescale: timescale, timeinterval: timeinterval,
@@ -387,91 +398,49 @@ impl TimeTableSystem {
                              print_options: HashMap::new(),
                              table_of_contents_p: true, 
                              direction_name: String::new() };
-        line_buffer.clear();
-        match buf_reader.read_line(&mut line_buffer) {
-            Ok(l) => if l == 0 {
-                        return Err(ConstructorError::PrematureEOF(String::from("Reading Station count")));
-                     },
+        let mut count: usize = match ReadUSize(&mut buf_reader) {
             Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Station count"),e.to_string())),
-        };
-        let mut count: usize = match line_buffer.parse::<usize>() {
-            Ok(c) => c,
-            Err(e) => return Err(ConstructorError::StationCountParseError(line_buffer,e.to_string())),
+            Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Station count"))),
+            Ok(Some(s)) => s,
         };
         for i in 0..count {
-            line_buffer.clear();
-            match buf_reader.read_line(&mut line_buffer) {
-                Ok(l) => if l == 0 {
-                    return Err(ConstructorError::PrematureEOF(String::from("Reading stations")));
-                },
-                Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading stations"),e.to_string())),
-            };
-            let station = match Station::from_str(&line_buffer) {
-                Ok(s) => s,
-                Err(e) => return Err(ConstructorError::StationParseError(line_buffer,e.to_string())),
+            let station = match Station::Read(&mut buf_reader) {
+                Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Station"),e.to_string())),
+                Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Station"))),
+                Ok(Some(s)) => s,
             };
             this.stations.push(station);
         }
-        line_buffer.clear();
-        match buf_reader.read_line(&mut line_buffer) {
-            Ok(l) => if l == 0 {
-                        return Err(ConstructorError::PrematureEOF(String::from("Reading Cab count")));
-                     },
+        count = match ReadUSize(&mut buf_reader) {
             Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Cab count"),e.to_string())),
-        };
-        count = match line_buffer.parse::<usize>() {
-            Ok(c) => c,
-            Err(e) => return Err(ConstructorError::CabCountParseError(line_buffer,e.to_string())),
+            Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Cab count"))),
+            Ok(Some(s)) => s,
         };
         for i in 0..count {
-            line_buffer.clear();
-            match buf_reader.read_line(&mut line_buffer) {
-                Ok(l) => if l == 0 {
-                    return Err(ConstructorError::PrematureEOF(String::from("Reading cabs")));
-                },
-                Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading stations"),e.to_string())),
-            };
-            let cab = match Cab::from_str(&line_buffer) {
-                Ok(s) => s,
-                Err(e) => return Err(ConstructorError::CabParseError(line_buffer,e.to_string())),
+            let cab = match Cab::Read(&mut buf_reader) {
+                Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Cab"),e.to_string())),
+                Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Cab"))),
+                Ok(Some(c)) => c,
             };
             this.cabs.insert(cab.Name().clone(),cab);
         }
-        line_buffer.clear();
-        match buf_reader.read_line(&mut line_buffer) {
-            Ok(l) => if l == 0 {
-                        return Err(ConstructorError::PrematureEOF(String::from("Reading Train count")));
-                     },
+        count = match ReadUSize(&mut buf_reader) {
             Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Train count"),e.to_string())),
-        };
-        count = match line_buffer.parse::<usize>() {
-            Ok(c) => c,
-            Err(e) => return Err(ConstructorError::TrainCountParseError(line_buffer,e.to_string())),
+            Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Train count"))),
+            Ok(Some(s)) => s,
         };
         for i in 0..count {
-            line_buffer.clear();
-            match buf_reader.read_line(&mut line_buffer) {
-                Ok(l) => if l == 0 {
-                    return Err(ConstructorError::PrematureEOF(String::from("Reading cabs")));
-                },
-                Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading stations"),e.to_string())),
-            };
-            let train = match Train::Read(&line_buffer,&this.cabs) {
-                Ok(t) => t,
-                Err(e) => return Err(ConstructorError::TrainParseError(line_buffer,e.to_string())),
+            let train = match Train::Read(&mut buf_reader,&this.cabs) {
+                Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Train"),e.to_string())),
+                Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Train"))),
+                Ok(Some(t)) => t,
             };
             this.trains.insert(train.Number(),train);
         }
-        line_buffer.clear();
-        match buf_reader.read_line(&mut line_buffer) {
-            Ok(l) => if l == 0 {
-                        return Err(ConstructorError::PrematureEOF(String::from("Reading Note count")));
-                     },
+        count = match ReadUSize(&mut buf_reader) {
             Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Note count"),e.to_string())),
-        };
-        count = match line_buffer.parse::<usize>() {
-            Ok(c) => c,
-            Err(e) => return Err(ConstructorError::NoteCountParseError(line_buffer,e.to_string())),
+            Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Note count"))),
+            Ok(Some(s)) => s,
         };
         for i in 0..count {
             let note = match Self::ReadNote(&mut buf_reader) {
@@ -481,15 +450,10 @@ impl TimeTableSystem {
             };
             this.notes.push(note);
         }
-        match buf_reader.read_line(&mut line_buffer) {
-            Ok(l) => if l == 0 {
-                        return Err(ConstructorError::PrematureEOF(String::from("Reading Options count")));
-                     },
+        count = match ReadUSize(&mut buf_reader) {
             Err(e) => return Err(ConstructorError::FileIOError(String::from("Reading Options count"),e.to_string())),
-        };
-        count = match line_buffer.parse::<usize>() {
-            Ok(c) => c,
-            Err(e) => return Err(ConstructorError::OptionsCountParseError(line_buffer,e.to_string())),
+            Ok(None) => return Err(ConstructorError::PrematureEOF(String::from("Reading Options count"))),
+            Ok(Some(s)) => s,
         };
         for i in 0..count {
             let optkey = match Self::ReadNote(&mut buf_reader) {
@@ -1349,9 +1313,9 @@ impl TimeTableSystem {
       * option or the empty string if the print option was not found.
       *   @param key The name of the print option.
       */
-    pub fn GetPrintOption(&self,key: String) -> Option<String>
+    pub fn GetPrintOption(&self,key: &str) -> Option<&String>
     {
-        self.print_options.get(&key).cloned()
+        self.print_options.get(key)
     }
     /** @brief Set a print option.  
       *
@@ -1361,8 +1325,8 @@ impl TimeTableSystem {
       *  @param key The name of the print option to be set.
       *  @param value The value to set the print option to.
       */
-    pub fn SetPrintOption(&mut self,key: String,value: String) {
-        self.print_options.insert(key,value);
+    pub fn SetPrintOption(&mut self,key: &str,value: &str) {
+        self.print_options.insert(key.to_string(),value.to_string());
     }
     /** @brief Write out a Time Table System to a new file.  
       *
@@ -1375,9 +1339,40 @@ impl TimeTableSystem {
       *  @param outmessage Pointer to a pointer to receive any error
       *    messages for any errors that might occur.
       */
-    pub fn WriteNewTimeTableFile(&mut self,filename: String, 
-                                 setfilename: bool) -> std::io::Result<bool> {
-        Ok(false)
+    pub fn WriteNewTimeTableFile(&mut self,filename: &String, 
+                                 setfilename: bool) -> std::io::Result<()> {
+        let out = File::create(filename)?;
+        let mut fp =  BufWriter::new(out);
+        writeln!(fp,"{}",self.name)?;
+        writeln!(fp,"{} {}",self.timescale,self.timeinterval)?;
+        writeln!(fp,"{}",self.stations.len())?;
+        for s in self.stations.iter() {
+            writeln!(fp,"{}",s)?;
+        }
+        writeln!(fp,"{}",self.cabs.len())?;
+        for c in self.cabs.values() {
+            writeln!(fp,"{}",c)?;
+        }
+        writeln!(fp,"{}",self.trains.len())?;
+        for t in self.trains.values() {
+            t.Write(&mut fp)?;
+        }
+        writeln!(fp,"{}",self.notes.len())?;
+        for note in self.notes.iter() {
+            Self::WriteNote(&mut fp,note)?;
+            writeln!(fp,"")?;
+        }
+        writeln!(fp,"{}",self.print_options.len())?;
+        for (opt,val) in self.print_options.iter() {
+            Self::WriteNote(&mut fp,opt)?;
+            write!(fp," ")?;
+            Self::WriteNote(&mut fp,val)?;
+            writeln!(fp,"")?;
+        }
+        if setfilename {
+            self.filepath = PathBuf::from_str(&filename).unwrap();
+        }
+        Ok(())
     }
     /** @brief Return time scale.
       */
@@ -1391,6 +1386,12 @@ impl TimeTableSystem {
     /** @brief Return file pathname.
       */
     pub fn Filename(&self) -> String {self.filepath.display().to_string()}
+    /*
+     * Common LaTeX characters.
+     */
+    const BACKSLASH: char = '\\';
+    const OPENBRACE: char = '{';
+    const CLOSEBRACE: char = '}';
     /** @brief Create a LaTeX file for generating a (hard copy) Employee
       * Timetable. 
       *
@@ -1401,8 +1402,643 @@ impl TimeTableSystem {
       *  @param outmessage Pointer to a pointer to receive any error
       *    messages for any errors that might occur.
       */
-    pub fn CreateLaTeXTimetable(&self,filename: String) -> std::io::Result<bool> {
-        Ok(false)
+    pub fn CreateLaTeXTimetable(&mut self,filename: &str) 
+            -> Result<(),CreateLaTeXError> {
+        if self.NumberOfTrains() == 0 {
+            Err(CreateLaTeXError::NoTrainsError)
+        } else {
+            // Get formatting sizes (column widths).
+            let StationColWidth = Self::getdouble(self.GetPrintOption("StationColWidth"),1.5);
+            let TimeColWidth    = Self::getdouble(self.GetPrintOption("TimeColWidth"),0.5);
+            // Figure out how many trains will fit across a page. 
+            let maxTrains = ((7.0 - StationColWidth - TimeColWidth)/TimeColWidth) as usize;
+            let UseMultipleTables: bool;        // Use multiple tables???
+            let mut GroupBy: GroupMode = GroupMode::NoGrouping;
+            // If there are more trains than will fit on a page, default to using
+            // multiple tables, otherwise default to using a single table.
+            if self.NumberOfTrains() >= maxTrains {
+                UseMultipleTables = Self::getbool(self.GetPrintOption("UseMultipleTables"),true);
+                self.table_of_contents_p = Self::getbool(self.GetPrintOption("TOCP"),true);
+                GroupBy =  match self.GetPrintOption("GroupBy") {
+                    None => GroupMode::Class,
+                    Some(g) => match g.as_str() {
+                                ""|"Class" => GroupMode::Class,
+                                _ => GroupMode::NoGrouping,
+                    },
+                };
+            } else {
+                UseMultipleTables = Self::getbool(self.GetPrintOption("UseMultipleTables"),false);
+                self.table_of_contents_p = Self::getbool(self.GetPrintOption("TOCP"),UseMultipleTables);
+                if UseMultipleTables {
+                    GroupBy =  match self.GetPrintOption("GroupBy") {
+                        None => GroupMode::Class,
+                        Some(g) => match g.as_str() {
+                                    ""|"Class" => GroupMode::Class,
+                                    _ => GroupMode::NoGrouping,
+                        },
+                    };
+                }
+            }
+            // Get the logical direction name.
+            self.direction_name = match self.GetPrintOption("DirectionName") {
+                None => String::from("Northbound"),
+                Some(s) => if s == "" {
+                            String::from("Northbound")
+                           } else {
+                            s.to_string()
+                           },
+            };
+            // Single or double sided formatting?
+            let NSides = match self.GetPrintOption("NSides") {
+                None => "single",
+                Some(s) => if s == "" {
+                            "single"
+                        } else {
+                            s
+                        }
+            };
+            // Time format.
+            let TimeFormat = match self.GetPrintOption("TimeFormat") {
+                None => "24",
+                Some(s) => if s == "" {
+                            "24"
+                        }  else {
+                            s
+                        }
+            };
+            let AMPMFormat = match self.GetPrintOption("AMPMFormat") {
+                None => "a",
+                Some(s) => if s == "" {
+                            "a"
+                           } else {
+                            s
+                           }
+            };
+            // Title, subtitle, and date of the time table. 
+            let Title = match self.GetPrintOption("Title") {
+                None => "My Model Railroad Timetable",
+                Some(s) => if s == "" {
+                            "My Model Railroad Timetable" 
+                           } else {
+                             s
+                           }
+            };
+            let SubTitle = match self.GetPrintOption("SubTitle") {
+                None => "Employee Timetable Number 1",
+                Some(s) => if s == "" {
+                            "Employee Timetable Number 1" 
+                           } else {
+                             s
+                           }
+            };
+            let Date = match self.GetPrintOption("Date") {
+                None => "\\today",
+                Some(s) => if s == "" {
+                            "\\today" 
+                           } else {
+                             s
+                           }
+            };
+            // LaTeX code to include in the preamble. 
+            let ExtraPreamble = match self.GetPrintOption("ExtraPreamble") {
+                None => "",
+                Some(s) => s,
+            };
+            // LaTeX code to put before the table of contents (eg on the title
+            // page).  Typically this will be a cover (logo) graphic or other
+            // such content.
+            let BeforeTOC = match self.GetPrintOption("BeforeTOC") {
+                None => "%\n% Insert Pre TOC material here.  Cover graphic, logo, etc.\n%",
+                Some(s) => if s == "" {
+                        "%\n% Insert Pre TOC material here.  Cover graphic, logo, etc.\n%"
+                        } else {s},
+            };
+            // LaTeX code to put a the start of the Notes section.
+            let NotesTOP = match self.GetPrintOption("NotesTOP") {
+                None => "%\n% Insert notes prefix info here.\n%",
+                Some(s) => if s == "" {
+                        "%\n% Insert notes prefix info here.\n%"
+                        } else {s},
+            };
+            
+            // Get lists of trains. 
+
+            let mut allTrains: TrainList = Vec::new();
+            let mut forwardTrains: TrainList = Vec::new();
+            let mut backwardTrains: TrainList = Vec::new();
+            // Loop through train map, collecting all trains, forward moving
+            // trains (assending station indexes) and backward moving trains
+            // (decending station indexes).
+            for tr in self.trains.values() {
+                allTrains.push(tr);
+                let s1 = tr.StopI(0).unwrap();
+                let s2 = tr.StopI(1).unwrap();
+                if s1.StationIndex() < s2.StationIndex() {
+                    forwardTrains.push(tr);
+                } else {
+                    backwardTrains.push(tr);
+                }
+            }
+            let out = File::create(filename)?;
+            let mut fp =  BufWriter::new(out);
+            // Output LaTeX preamble. 
+            writeln!(fp, "{}nonstopmode", Self::BACKSLASH)?;
+            if NSides == "double" {
+                writeln!(fp, "{}documentclass[notitlepage,twoside]{{article}}",
+                            Self::BACKSLASH)?;
+            } else {
+                writeln!(fp, "{}documentclass[notitlepage]{{article}}",
+                            Self::BACKSLASH)?;
+            }
+            writeln!(fp, "\n{}usepackage{{TimeTable}}", Self::BACKSLASH)?;
+            writeln!(fp, "{}usepackage{{supertabular}}", Self::BACKSLASH)?;
+            writeln!(fp, "{}usepackage{{graphicx}}", Self::BACKSLASH)?;
+            if ExtraPreamble != "" {
+                writeln!(fp, "{}", ExtraPreamble)?;
+            }
+            if !self.table_of_contents_p {
+                writeln!(fp, "{}nofiles", Self::BACKSLASH)?;
+            }
+            if TimeFormat == "24" {
+                writeln!(fp, "{}newcommand{{{}shtime}}{{{}rrtimetwentyfour}}",
+                            Self::BACKSLASH,Self::BACKSLASH,Self::BACKSLASH)?;
+            } else {
+                writeln!(fp, "{}newcommand{{{}shtime}}{{{}rrtimetwelve{}}}",
+                            Self::BACKSLASH,Self::BACKSLASH,Self::BACKSLASH,
+                            AMPMFormat)?;
+            }
+            writeln!(fp, "")?;
+            if StationColWidth != 1.5 {
+                writeln!(fp, "{}setlength{{{}stationwidth}}{{{}in}}",
+                        Self::BACKSLASH,Self::BACKSLASH,StationColWidth)?;
+                writeln!(fp, "{}setlength{{{}stationwidthonear}}{{{}stationwidth}}",
+                        Self::BACKSLASH,Self::BACKSLASH,Self::BACKSLASH)?;
+                writeln!(fp, "{}advance{}stationwidthonear by -.25in",
+                        Self::BACKSLASH,Self::BACKSLASH)?;
+                writeln!(fp, "{}setlength{{{}stationwidthtwoar}}{{{}stationwidth}}",
+                        Self::BACKSLASH,Self::BACKSLASH,Self::BACKSLASH)?;
+                writeln!(fp, "{}advance{}stationwidthtwoar by -.25in",
+                        Self::BACKSLASH,Self::BACKSLASH)?;
+            }
+            if TimeColWidth != 0.5 {
+                writeln!(fp, "{}setlength{{{}timecolumnwidth}}{{{}in}}",
+                        Self::BACKSLASH,Self::BACKSLASH,TimeColWidth)?;
+            }
+            writeln!(fp, "{}title{{{}}}", Self::BACKSLASH,Title)?;
+            writeln!(fp, "{}author{{{}}}", Self::BACKSLASH,SubTitle)?;
+            writeln!(fp, "{}date{{{}}}", Self::BACKSLASH,Date)?;
+            writeln!(fp, "{}begin{{document}}",Self::BACKSLASH)?;
+
+            // Generate title.
+            writeln!(fp, "{}maketitle",Self::BACKSLASH)?;
+                
+            // User supplied title page material.
+            writeln!(fp, "{}", BeforeTOC)?;
+
+            if self.table_of_contents_p {
+                 writeln!(fp, "{}tableofcontents",Self::BACKSLASH)?;
+            }
+
+            // Branch off depending on how many tables and how the tables are
+            // grouped. 
+            if UseMultipleTables && GroupBy == GroupMode::Class {
+                // Multiple tables, grouped by class.
+                self.MakeTimeTableGroupByClass(&mut fp,&allTrains,
+                                                &forwardTrains,
+                                                &backwardTrains)?;
+            } else if self.NumberOfTrains() > maxTrains {
+                // Multiple tables, grouped manually.
+                self.MakeTimeTableGroupManually(&mut fp,maxTrains,
+                                                &mut allTrains,
+                                                &mut forwardTrains,
+                                                &mut backwardTrains)?;
+            } else {
+                // Single table for all trains. 
+                let header = match self.GetPrintOption("AllTrainsHeader") {
+                    None => "All Trains",
+                    Some(s) => if s == "" {
+                        "All Trains"
+                    } else {s},
+                };
+                let sectionTOP = match self.GetPrintOption("AllTrainsSectionTOP") {
+                    None => "",
+                    Some(s) => s,
+                };
+                self.MakeTimeTableOneTable(&mut fp,&allTrains,&forwardTrains,
+                                            &backwardTrains,header,
+                                            sectionTOP)?;
+            }
+            // Generate notes section if there are any notes. 
+            if self.NumberOfNotes() > 0 {
+                // Fresh page.
+                writeln!(fp,"{}clearpage",Self::BACKSLASH)?;
+                // Section heading.
+                writeln!(fp,"{}section*{{Notes}}",Self::BACKSLASH)?;
+                if self.table_of_contents_p {
+                    writeln!(fp,"{}addcontentsline{{toc}}{{section}}{{Notes}}",
+                             Self::BACKSLASH)?;
+                }
+                // User supplied content. 
+                writeln!(fp,"{}",NotesTOP)?;
+                // Output notes as a LaTeX description environment. 
+                writeln!(fp,"{}begin{{description}}",Self::BACKSLASH)?;
+                for nt in 0..self.NumberOfNotes() {
+                    let mut note = self.notes[nt].clone();
+                    // Make sure we have proper punctuation (we don't want to be
+                    // busted by the Grammar Police). 
+                    if !note.ends_with(['.','?','!']) {
+                        note += ".";
+                    }
+                    writeln!(fp,"{}item[{}] {}",Self::BACKSLASH,nt+1,note)?;
+                }
+                writeln!(fp,"{}end{{description}}",Self::BACKSLASH)?;
+            }
+            // End of document. 
+            writeln!(fp, "{}end{{document}}", Self::BACKSLASH)?;
+            Ok(())
+        }
+    }
+    /**********************************************************************
+     * Create a series of time tables, one for each class of train.       *
+     * This private method loops over the set of train classes generating *
+     * one table for each class of train.				  *
+     **********************************************************************/
+    fn MakeTimeTableGroupByClass(&self,fp: &mut BufWriter<File>,
+                                 allTrains: &TrainList,
+                                 forwardTrains: &TrainList,
+                                 backwardTrains: &TrainList) 
+                                            -> Result<(),CreateLaTeXError> {
+        let mut classlist: Vec<u32> = Vec::new(); // (Sorted) list of classes. 
+        // Loop over all trains, collecting unique class numbers.
+        for tr in allTrains.iter() {
+            let classnumber = tr.ClassNumber();
+            if !classlist.contains(&classnumber) {
+                classlist.push(classnumber);
+            }
+            classlist.sort_unstable();
+            // For each class, collect the trains for that class as three lists
+            // (all, forward, backward).  Generate a table for each class.
+            for classI in classlist.iter() {
+                let mut fcl: TrainList = Vec::new();
+                let mut bcl: TrainList = Vec::new();
+                let mut acl: TrainList = Vec::new();
+                for tr in forwardTrains.iter() {
+                    if tr.ClassNumber() == *classI {fcl.push(tr);}
+                }
+                for tr in backwardTrains.iter() {
+                    if tr.ClassNumber() == *classI {bcl.push(tr);}
+                }
+                for tr in allTrains.iter() {
+                    if tr.ClassNumber() == *classI {acl.push(tr);}
+                }
+                // Get or create group header
+                let temp = format!("Group,{},ClassHeader",*classI);
+                let classHeader = match self.GetPrintOption(temp.as_str()) {
+                    None => format!("Class {} trains",*classI),
+                    Some(s) => if s == "" {
+                        format!("Class {} trains",*classI)
+                    } else {s.clone()},
+                };
+                // Get or create user content. 
+                let temp = format!("Group,{},SectionTOP",*classI);
+                let sectionTOP = match self.GetPrintOption(temp.as_str()) {
+                    None => "",
+                    Some(s) => s,
+                };
+                // Call helper method to generate the table.
+                self.MakeTimeTableOneTable(fp,&acl,&fcl,&bcl,
+                                           classHeader.as_str(),sectionTOP)?;
+            }
+        }
+        Ok(())
+    }
+    /**********************************************************************
+     * Create a series of time tables, one for each manually selected     *
+     * group of trains. This private method loops over the set of manually*
+     * selected group of trains.                                          *
+     **********************************************************************/
+    fn MakeTimeTableGroupManually(&self,fp: &mut BufWriter<File>,
+                                  maxTrains: usize,allTrains: &mut TrainList,
+                                  forwardTrains: &mut TrainList,
+                                  backwardTrains: &mut TrainList)
+                                            -> Result<(),CreateLaTeXError> {
+        // Loop over groups until all trains have been printed.
+        let mut igroup: u32 = 1;
+        loop {
+            if allTrains.is_empty() {break;}
+            // Get class header 
+            let temp = format!("Group,{},ClassHeader",igroup);
+            let classHeader = match self.GetPrintOption(temp.as_str()) {
+                None => format!("Class {} trains",igroup),
+                Some(s) => if s == "" {
+                    format!("Class {} trains",igroup)
+                } else {s.clone()},
+            };
+            // Get user content for this group. 
+            let temp = format!("Group,{},SectionTOP",igroup);
+            let sectionTOP = match self.GetPrintOption(temp.as_str()) { 
+                None => "",
+                Some(s) => s, 
+            };
+            // Get list of train numbers in this group. 
+            let temp = format!("Group,{},Trains",igroup);
+            let trainlist = match self.GetPrintOption(temp.as_str()) {
+                None => "",
+                Some(s) => s,
+            };
+            let listOfTrains = match StringListFromString(trainlist.to_string()) {
+                None => {return Err(CreateLaTeXError::GroupSyntaxError(igroup));},
+                Some(sl) => sl,
+            };
+            // If we have exhausted the groups but have not printed all trains
+            // report a problem.
+            if listOfTrains.len() == 0 && allTrains.len() > 0 {
+                return Err(CreateLaTeXError::GroupEmpty(igroup));
+            }
+            // Collect trains for this group.
+            let mut fcl: TrainList = Vec::new();
+            let mut bcl: TrainList = Vec::new();
+            let mut acl: TrainList = Vec::new();
+            let mut fclI: Vec<usize> = Vec::new();
+            let mut bclI: Vec<usize> = Vec::new();
+            let mut aclI: Vec<usize> = Vec::new();
+            let mut I: usize = 0;
+            for tr in allTrains.iter() {
+                if listOfTrains.contains(&tr.Number()) {
+                    acl.push(tr);
+                    aclI.push(I);
+                }
+                I += 1;
+            }
+            for indx in aclI.iter() {
+                allTrains.remove(*indx);
+            }
+            I = 0;
+            for tr in forwardTrains.iter() {
+                if listOfTrains.contains(&tr.Number()) {
+                    fcl.push(tr);
+                    fclI.push(I);
+                }
+                I += 1;
+            }
+            for indx in fclI.iter() {
+                forwardTrains.remove(*indx);
+            }
+            I = 0;
+            for tr in backwardTrains.iter() {
+                if listOfTrains.contains(&tr.Number()) {
+                    bcl.push(tr); 
+                    bclI.push(I); 
+                }
+                I += 1;
+            }
+            for indx in bclI.iter() {
+                backwardTrains.remove(*indx);
+            }
+            // Print out this group of trains.
+            self.MakeTimeTableOneTable(fp,&acl,&fcl,&bcl,&classHeader,sectionTOP)?;
+            igroup += 1;
+        }
+        Ok(())
+    }
+    /**********************************************************************
+     * Create one time table, given a list of trains.                     *
+     * If there are only forward moving trains (typical of loop layouts)  *
+     * generate a table with stations listed in the left column, otherwise*
+     * generate a table with the stations in the center column.           *
+     **********************************************************************/
+    fn MakeTimeTableOneTable(&self,fp: &mut BufWriter<File>,
+                             allTrains: &TrainList,forwardTrains: &TrainList,
+                             backwardTrains: &TrainList,header: &str,
+                             sectionTOP: &str) -> Result<(),CreateLaTeXError> {
+        if backwardTrains.is_empty() {
+            self.MakeTimeTableOneTableStationsLeft(fp,forwardTrains,header,sectionTOP)
+        } else {
+            self.MakeTimeTableOneTableStationsCenter(fp,forwardTrains,backwardTrains,header,sectionTOP)
+        }
+    }
+    /**********************************************************************
+     * Make a table with the stations listed on the left (all trains      *
+     * in a single (logical) direction).                                  *
+     **********************************************************************/
+    fn MakeTimeTableOneTableStationsLeft(&self,fp: &mut BufWriter<File>,
+                                        trains: &TrainList,
+                                        header: &str,sectionTOP: &str) 
+                                            -> Result<(),CreateLaTeXError> {
+        let mut timesAtStations: TrainTimesAtStation = HashMap::new();
+        self.ComputeTimes(trains,&mut timesAtStations);  // Compute time cells.
+        let ntrains = trains.len();                 // Number of trains.
+
+        // Start on a fresh page. 
+        writeln!(fp,"{}clearpage",Self::BACKSLASH)?;
+        // Output section header. 
+        writeln!(fp,"{}section*{{{}}}",Self::BACKSLASH,header)?;
+        // Include TOC information.
+        if self.table_of_contents_p {
+            writeln!(fp,"{}addcontentsline{{toc}}{{section}}{{{}}}",
+                    Self::BACKSLASH,header)?;
+            for tr in trains.iter() {
+                writeln!(fp,"{}addcontentsline{{toc}}{{subsection}}{{{}}}",
+                    Self::BACKSLASH,tr.Number())?;
+            }
+        }
+        // Output user content.
+        writeln!(fp,"{}",sectionTOP)?;
+        // The table will be generated as a supertabular environment.
+        write!(fp,"{}begin{{supertabular}}{{|r|p{{{}stationwidth}}|",
+                Self::BACKSLASH,Self::BACKSLASH)?;
+        for itr in 0..ntrains {write!(fp,"r|")?;}
+        writeln!(fp,"}}")?;
+        writeln!(fp,"{}hline",Self::BACKSLASH)?;
+	// Column headings.
+        write!(fp,"&{}parbox{{{}timecolumnwidth}}{{Train number:{}{}name:{}{}class:}}",
+               Self::BACKSLASH,Self::BACKSLASH,Self::BACKSLASH,
+               Self::BACKSLASH,Self::BACKSLASH,Self::BACKSLASH)?;
+        for tr in trains.iter() {
+            let number = tr.Number();
+            let name   = tr.Name();
+            let classnumer = tr.ClassNumber();
+            write!(fp,"&{}parbox{{{}timecolumnwidth}}{{{}{}{}{}{}{}{}}}",
+                    Self::BACKSLASH,Self::BACKSLASH,number,
+                    Self::BACKSLASH,Self::BACKSLASH,name,
+                    Self::BACKSLASH,Self::BACKSLASH,classnumer)?;
+        }
+        writeln!(fp,"{}{}",Self::BACKSLASH,Self::BACKSLASH)?;
+        writeln!(fp,"{}hline",Self::BACKSLASH)?;
+        // Second line of column headings.
+	write!(fp,"&Notes:")?;
+        for tr in trains.iter() {
+            write!(fp,"&{}parbox{{{}timecolumnwidth}}{{",Self::BACKSLASH,
+                    Self::BACKSLASH)?;
+            let numnotes = tr.NumberOfNotes();
+            for inote in 0..numnotes {write!(fp,"{} ",
+                                             tr.Note(inote).unwrap())?;}
+            write!(fp,"}}")?;
+        }
+        writeln!(fp,"{}{}",Self::BACKSLASH,Self::BACKSLASH)?;
+        writeln!(fp,"{}hline",Self::BACKSLASH)?;
+        // Third line of column headings. 
+        writeln!(fp,"Mile&Station&{}multicolumn{{{}}}{{|c|}}{{{}  (Read Down)}}{}{}",
+                Self::BACKSLASH,ntrains,self.direction_name,Self::BACKSLASH,
+                Self::BACKSLASH)?;
+        writeln!(fp,"{}hline",Self::BACKSLASH)?;
+        // Output 3 rows for each station (even ones where no trains stop).
+        let numstations = self.NumberOfStations();
+        for istation in 0..numstations {
+            // Three rows per station:
+            //    station name AR | train1 arrival/track | train2 arrival/track | ... trainN arrival/track |
+            //    scale mile      | train1 cab+notes     | train2 cab+notes     | ... trainN cab+notes     |
+            //                 LV | train1 depart/track  | train2 depart/track  | ... trainN depart/track  |
+            // Station column.
+            let tas = match timesAtStations.get(&istation) {
+                None => {continue;},
+                Some(t) => t,
+            };
+            let station = &self.stations[istation];
+            let smile = station.SMile();
+            // Train Arival time row
+            // Station name and AR in station column.
+            write!(fp,"&{}parbox[t]{{{}stationwidthonear}}{{{}}}{}hfill AR",
+                    Self::BACKSLASH,Self::BACKSLASH,station.Name(),
+                        Self::BACKSLASH)?;
+            for tr in trains.iter() {
+                write!(fp,"&")?;
+                let st = match tas.get(&tr.Number()) {
+                    None => {continue;},
+                    Some(t) => t,
+                };
+                if st.Flag() != StopFlagType::Origin {
+                    write!(fp,"{}shtime{{{}}}",Self::BACKSLASH,
+                            (st.Arrival()+0.5) as u32)?;
+                } else {
+                    let origStop = tr.StopI(0).unwrap();
+                    let tk = origStop.StorageTrackName();
+                    if tk.len() > 0 {
+                        write!(fp,"Tr {}",tk)?;
+                    }
+                }
+            }
+            writeln!(fp,"{}{}",Self::BACKSLASH,Self::BACKSLASH)?;
+            // Train Cab and notes row 
+            // Scale Mile in station column.
+            write!(fp,"{}&",smile as u32)?;
+            for tr in trains.iter() {
+                write!(fp,"&")?;
+                match tas.get(&tr.Number()) {
+                    None => {continue;},
+                    Some(t) => (),
+                };
+                let nstops = tr.NumberOfStops();
+                for istop in 0..nstops {
+                    let stop = tr.StopI(istop).unwrap();
+                    if stop.StationIndex() == istation {
+                        write!(fp,"{}parbox{{{}timecolumnwidth}}{{",
+                                Self::BACKSLASH,Self::BACKSLASH)?;
+                        match stop.TheCab() {
+                            None => (),
+                            Some(cab) => {
+                                write!(fp,"{}{}{}",cab.Name(),Self::BACKSLASH,
+                                        Self::BACKSLASH)?;
+                            },
+                        };
+                        for inote in 0..stop.NumberOfNotes() {
+                            write!(fp,"{} ",stop.Note(inote).unwrap())?;
+                        }
+                        write!(fp,"}}")?;
+                        break;
+                    }
+                }
+            }
+            writeln!(fp,"{}{}",Self::BACKSLASH,Self::BACKSLASH)?;
+            // Train departure times.
+            // LV in station column.
+            write!(fp,"&{}hfill LV",Self::BACKSLASH)?;
+            for tr in trains.iter() {
+                write!(fp,"&")?;
+                let st = match tas.get(&tr.Number()) {
+                    None => {continue;}
+                    Some(st) => st,
+                };
+                if st.Flag() != StopFlagType::Terminate {
+                    write!(fp,"{}shtime{{{}}}",Self::BACKSLASH,
+                            (st.Departure()+0.5) as u32)?;
+                } else {
+                    let destStop = tr.StopI(tr.NumberOfStops()-1).unwrap();
+                    let strack = destStop.StorageTrackName();
+                    if strack.len() > 0 {
+                        write!(fp,"Tr {}",strack)?;
+                    }
+                }
+            }
+            writeln!(fp,"{}{}",Self::BACKSLASH,Self::BACKSLASH)?;
+            writeln!(fp,"{}hline",Self::BACKSLASH)?;
+        }
+        writeln!(fp,"{}end{{supertabular}}",Self::BACKSLASH)?;
+        writeln!(fp,"")?;
+        writeln!(fp,"{}vfill",Self::BACKSLASH)?;
+        writeln!(fp,"")?;
+        Ok(())
+    }
+    fn MakeTimeTableOneTableStationsCenter(&self,fp: &mut BufWriter<File>,
+                                           forwardTrains: &TrainList,
+                                           backwardsTrains: &TrainList, 
+                                           header: &str,sectionTOP: &str) 
+                                            -> Result<(),CreateLaTeXError> {
+        Ok(())
+    }
+    /**********************************************************************
+     * Helper method to compute station times.                            *
+     * Iterates over trains and then iterates over the stations the train *
+     * passes or stops at.  For each stop of each train, fill in a cell in*
+     * the TrainTimesAtStation matrix, with the arrival and departure     *
+     * times.                                                             *
+     **********************************************************************/
+    fn ComputeTimes(&self,trains: &TrainList,
+                    timesAtStations: &mut TrainTimesAtStation) {
+        // Loop over trains...
+        for train in trains.iter() {
+            let departure = train.Departure();
+            let speed = train.Speed(); 
+            let mut oldDepart: f64 = -1.0;
+            let mut oldSmile:  f64 = -1.0; 
+            let nstops = train.NumberOfStops();
+            // Loop over stops...
+            for i in 0..nstops {
+                let stop = train.StopI(i).unwrap();
+                let istop = stop.StationIndex();
+                let station = self.IthStation(istop).unwrap();
+                let smile = station.SMile();
+                // compute arrival and departure times.
+                let arrival: f64;
+                if oldDepart >= 0.0 {
+                    // Travel time at speed from previous station.
+                    arrival = oldDepart + ((smile - oldSmile).abs() * 
+                                (speed as f64/ 60.0));
+                } else {
+                    // Originating departure.
+                    arrival = departure as f64;
+                }
+                let depart = stop.Departure(arrival);
+                let st: StationTimes = StationTimes::new(arrival,depart,stop.Flag());
+                let stationTimes = timesAtStations.entry(istop)
+                                        .or_insert(HashMap::new());
+                stationTimes.insert(train.Number(),st);
+                oldDepart = depart;
+                oldSmile  = smile;
+            }
+        }
+    }
+    fn getdouble(optstr: Option<&String>,default: f64) -> f64 {
+        match optstr {
+            None => default,
+            Some(string) => string.parse::<f64>().unwrap_or(default),
+        }
+    }
+    fn getbool(optstr: Option<&String>,default: bool) -> bool {
+        match optstr { 
+            None => default, 
+            Some(string) => string.parse::<bool>().unwrap_or(default),
+        }
     }
     /* ToDo: interators, private methods */
     fn ReadNote(inp: &mut BufReader<File>) -> std::io::Result<Option<String>> {
@@ -1437,6 +2073,17 @@ impl TimeTableSystem {
             Ok(Some(result))
         }       
     }
+    fn WriteNote(f: &mut BufWriter<File>, string: &String) -> std::io::Result<()> {
+        write!(f,"{}",'"')?;
+        for ch in string.chars() {
+            if ch == '"' || ch == '\\' {
+                write!(f,"{}",'\\')?;
+            }
+            write!(f,"{}",ch)?;
+        }
+        write!(f,"{}",'"')
+    }
+
 }
 
 
@@ -1488,5 +2135,17 @@ mod tests {
         assert_eq!(temp.len(),2);
         assert_eq!(temp.front(),Some(&String::from("Hello")));
         assert_eq!(temp.back(),Some(&String::from("World")));
+    }
+
+    #[test]
+    fn TimeTableSystem_old () {
+        let temp = TimeTableSystem::old("examples/LJandBS.tt")
+                    .expect("Failed");
+    }
+    #[test]
+    fn TimeTableSystem_CreateLaTeXTimetable () {
+        let mut temp = TimeTableSystem::old("examples/LJandBS.tt")
+                    .expect("Failed");
+        temp.CreateLaTeXTimetable("examples/LJandBS.tex").expect("Failed");
     }
 }

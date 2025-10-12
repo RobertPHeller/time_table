@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:19
-//  Last Modified : <251006.1621>
+//  Last Modified : <251011.1009>
 //
 //  Description	
 //
@@ -47,6 +47,10 @@
 use std::fmt;
 use std::str::FromStr;
 use std::collections::HashMap;
+use std::io::{BufReader,Read};
+use std::fs::File;
+use std::io::{Error, ErrorKind};
+use crate::primio::*;
 
 
 /** This class maintains information about cabs.
@@ -150,6 +154,43 @@ impl Cab {
             Some((n, m)) => pos += n + m.len(),
         };
         Ok((Cab::new(name,color),pos))
+    }
+    pub fn Read(inp: &mut BufReader<File>) -> std::io::Result<Option<Self>> {
+        let mut ch: char;
+        let mut byte: [u8; 1] = [0; 1]; 
+        loop {
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char;
+            match ch {
+                ' '|'\t'|'\n' => (),
+                _ => {break;},
+            }
+        }
+        for c in "<Cab".chars() {
+            if c != ch {return Ok(None);}
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char;
+        }
+        let name: String = match ReadQuotedString(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
+        };
+        let color: String = match ReadQuotedString(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
+        };
+        loop {
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char; 
+            match ch {
+                '>' => {return Ok(Some(Self::new(name,color)));},
+                ' '|'\t'|'\n' => {continue;},
+                _ => {return Err(Error::new(ErrorKind::Other,"Syntax error: missing '>'"));},
+            };
+        }
     }
 }
     

@@ -1,0 +1,3558 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Debian) (preloaded format=pdflatex 2025.1.12)  11 OCT 2025 22:15
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**LJandBS.tex
+(./LJandBS.tex
+LaTeX2e <2022-11-01> patch level 1
+L3 programming layer <2023-01-16>
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2022/07/02 v1.4n Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2022/07/02 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count185
+\c@section=\count186
+\c@subsection=\count187
+\c@subsubsection=\count188
+\c@paragraph=\count189
+\c@subparagraph=\count190
+\c@figure=\count191
+\c@table=\count192
+\abovecaptionskip=\skip48
+\belowcaptionskip=\skip49
+\bibindent=\dimen140
+) (./TimeTable.sty
+Package: TimeTable 2002/02/16 V0.1 TimeTable Package
+
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty
+Package: ifthen 2022/04/13 v1.1d Standard LaTeX ifthen package (DPC)
+)
+(/usr/share/texlive/texmf-dist/tex/latex/pslatex/pslatex.sty
+Package: pslatex 2021/01/13 v1.3 pslatex emulation (DPC)
+LaTeX Font Info:    Redeclaring symbol font `operators' on input line 66.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
+(Font)                  OT1/cmr/m/n --> OT1/ptmcm/m/n on input line 66.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
+(Font)                  OT1/cmr/bx/n --> OT1/ptmcm/m/n on input line 66.
+LaTeX Font Info:    Redeclaring symbol font `letters' on input line 67.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `normal'
+(Font)                  OML/cmm/m/it --> OML/ptmcm/m/it on input line 67.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `bold'
+(Font)                  OML/cmm/b/it --> OML/ptmcm/m/it on input line 67.
+LaTeX Font Info:    Redeclaring symbol font `symbols' on input line 68.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `normal'
+(Font)                  OMS/cmsy/m/n --> OMS/pzccm/m/n on input line 68.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `bold'
+(Font)                  OMS/cmsy/b/n --> OMS/pzccm/m/n on input line 68.
+LaTeX Font Info:    Redeclaring symbol font `largesymbols' on input line 69.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `normal'
+(Font)                  OMX/cmex/m/n --> OMX/psycm/m/n on input line 69.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `bold'
+(Font)                  OMX/cmex/m/n --> OMX/psycm/m/n on input line 69.
+\symbold=\mathgroup4
+\symitalic=\mathgroup5
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 75.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
+(Font)                  OT1/cmr/bx/n --> OT1/ptm/bx/n on input line 75.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
+(Font)                  OT1/cmr/bx/n --> OT1/ptm/bx/n on input line 75.
+LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 76.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
+(Font)                  OT1/cmr/m/it --> OT1/ptm/m/it on input line 76.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
+(Font)                  OT1/cmr/bx/it --> OT1/ptm/m/it on input line 76.
+)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/calc.sty
+Package: calc 2017/05/25 v4.3 Infix arithmetic (KKT,FJ)
+\calc@Acount=\count193
+\calc@Bcount=\count194
+\calc@Adimen=\dimen141
+\calc@Bdimen=\dimen142
+\calc@Askip=\skip50
+\calc@Bskip=\skip51
+LaTeX Info: Redefining \setlength on input line 80.
+LaTeX Info: Redefining \addtolength on input line 81.
+\calc@Ccount=\count195
+\calc@Cskip=\skip52
+)
+\c@rr@hours=\count196
+\c@rr@minutes=\count197
+\rr@zerosf=\skip53
+LaTeX Font Info:    Font shape `OT1/phv/m/n' will be
+(Font)              scaled to size 8.99994pt on input line 53.
+LaTeX Font Info:    Font shape `OT1/phv/m/n' will be
+(Font)              scaled to size 7.19995pt on input line 53.
+\rr@zerosfbf=\skip54
+LaTeX Font Info:    Font shape `OT1/phv/bx/n' in size <8> not available
+(Font)              Font shape `OT1/phv/b/n' tried instead on input line 55.
+LaTeX Font Info:    Font shape `OT1/phv/b/n' will be
+(Font)              scaled to size 7.19995pt on input line 55.
+\stationwidth=\skip55
+\timecolumnwidth=\skip56
+\stationwidthonear=\skip57
+\stationwidthtwoar=\skip58
+)
+(/usr/share/texlive/texmf-dist/tex/latex/supertabular/supertabular.sty
+Package: supertabular 2020/02/02 v4.1g the supertabular environment
+\c@tracingst=\count198
+\ST@wd=\dimen143
+\ST@rightskip=\skip59
+\ST@leftskip=\skip60
+\ST@parfillskip=\skip61
+\ST@pageleft=\dimen144
+\ST@headht=\dimen145
+\ST@tailht=\dimen146
+\ST@pagesofar=\dimen147
+\ST@pboxht=\dimen148
+\ST@lineht=\dimen149
+\ST@prevht=\dimen150
+\ST@toadd=\dimen151
+\ST@dimen=\dimen152
+\ST@pbox=\box51
+)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
+\KV@toks@=\toks16
+)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2022/03/10 v1.4e Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2021/08/11 v1.11 sin cos tan (DPC)
+)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 107.
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-def/pdftex.def
+File: pdftex.def 2022/09/22 v1.2b Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen153
+\Gin@req@width=\dimen154
+)
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+File: l3backend-pdftex.def 2023-01-16 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count199
+\l__pdf_internal_box=\box52
+)
+(./LJandBS.aux)
+\openout1 = `LJandBS.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OMS/pzccm/m/n on input line 12.
+LaTeX Font Info:    Trying to load font information for OMS+pzccm on input line
+ 12.
+ (/usr/share/texlive/texmf-dist/tex/latex/psnfss/omspzccm.fd
+File: omspzccm.fd 2000/01/03 Fontinst v1.801 font definitions for OMS/pzccm.
+)
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+
+(/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count266
+\scratchdimen=\dimen155
+\scratchbox=\box53
+\nofMPsegments=\count267
+\nofMParguments=\count268
+\everyMPshowfont=\toks17
+\MPscratchCnt=\count269
+\MPscratchDim=\dimen156
+\MPnumerator=\count270
+\makeMPintoPDFobject=\count271
+\everyMPtoPDFconversion=\toks18
+) (/usr/share/texlive/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+
+(/usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
+))
+LaTeX Font Info:    Trying to load font information for OT1+ptmcm on input line
+ 13.
+
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ptmcm.fd
+File: ot1ptmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OT1/ptmcm.
+)
+LaTeX Font Info:    Trying to load font information for OML+ptmcm on input line
+ 13.
+
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/omlptmcm.fd
+File: omlptmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OML/ptmcm.
+)
+LaTeX Font Info:    Trying to load font information for OMX+psycm on input line
+ 13.
+
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/omxpsycm.fd
+File: omxpsycm.fd 2000/01/03 Fontinst v1.801 font definitions for OMX/psycm.
+)
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 13.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 13.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 13.
+<LHBSLogo.png, id=1, 36.135pt x 36.135pt>
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 16.
+(pdftex.def)             Requested size: 144.53955pt x 144.53955pt.
+ (./LJandBS.toc
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 2.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7.4> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 2.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 2.
+
+[1
+
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <./LHBSLogo.png (PNG copy)>
+] [2] [3])
+\tf@toc=\write3
+\openout3 = `LJandBS.toc'.
+
+ [4]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 28.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 32--32
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 32--32
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 32--32
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 32--32
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 32--32
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 43--43
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 43--43
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 43--43
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 43--43
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 47--47
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 47--47
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 47--47
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 47--47
+
+ []
+
+[5
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 66.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 70--70
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 70--70
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 70--70
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 70--70
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 70--70
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 81--81
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 81--81
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 81--81
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 81--81
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 85--85
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 85--85
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 85--85
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 85--85
+
+ []
+
+[6
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 104.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 108--108
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 108--108
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 108--108
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 108--108
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 108--108
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 119--119
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 119--119
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 119--119
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 119--119
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 123--123
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 123--123
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 123--123
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 123--123
+
+ []
+
+[7
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 142.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 146--146
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 146--146
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 146--146
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 146--146
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 146--146
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 157--157
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 157--157
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 157--157
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 157--157
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 161--161
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 161--161
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 161--161
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 161--161
+
+ []
+
+[8
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 180.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 184--184
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 184--184
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 184--184
+\OT1/ptm/m/n/10 Gen-eral
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 184--184
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (0.52452pt too wide) in paragraph at lines 184--184
+\OT1/ptm/m/n/10 Freighter 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 184--184
+\OT1/ptm/m/n/10 Sunset
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 184--184
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 195--195
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 195--195
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 195--195
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 195--195
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 199--199
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 199--199
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 199--199
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 199--199
+
+ []
+
+[9
+
+]
+<amtraklogo.jpg, id=35, 88.33pt x 29.10875pt>
+File: amtraklogo.jpg Graphic file (type jpg)
+<use amtraklogo.jpg>
+Package pdftex.def Info: amtraklogo.jpg  used on input line 218.
+(pdftex.def)             Requested size: 88.32977pt x 29.10867pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 222--222
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Overfull \hbox (1.09457pt too wide) in paragraph at lines 222--222
+\OT1/ptm/m/n/10 Midnight
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 222--222
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 222--222
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 222--222
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 229--229
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 229--229
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 229--229
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 229--229
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 233--233
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 233--233
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 233--233
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 233--233
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 237--237
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 237--237
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 237--237
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 237--237
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 241--241
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 241--241
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 241--241
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 241--241
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 245--245
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 245--245
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 245--245
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 245--245
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 249--249
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 249--249
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 249--249
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 249--249
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 253--253
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 253--253
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 253--253
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 253--253
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 257--257
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 257--257
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 257--257
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 257--257
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 261--261
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 261--261
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 261--261
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 261--261
+
+ []
+
+[10
+
+ <./amtraklogo.jpg>]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 280.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 284--284
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 284--284
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 284--284
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 284--284
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 284--284
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 295--295
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 295--295
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 295--295
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 295--295
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 299--299
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 299--299
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 299--299
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 299--299
+
+ []
+
+[11
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 318.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 322--322
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 322--322
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 322--322
+\OT1/ptm/m/n/10 Gen-eral
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 322--322
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (0.52452pt too wide) in paragraph at lines 322--322
+\OT1/ptm/m/n/10 Freighter 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 322--322
+\OT1/ptm/m/n/10 Sunset
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 322--322
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 333--333
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 333--333
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 333--333
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 333--333
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 337--337
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 337--337
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 337--337
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 337--337
+
+ []
+
+[12
+
+]
+File: amtraklogo.jpg Graphic file (type jpg)
+<use amtraklogo.jpg>
+Package pdftex.def Info: amtraklogo.jpg  used on input line 356.
+(pdftex.def)             Requested size: 88.32977pt x 29.10867pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 360--360
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Overfull \hbox (1.09457pt too wide) in paragraph at lines 360--360
+\OT1/ptm/m/n/10 Midnight
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 360--360
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 360--360
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 360--360
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 367--367
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 367--367
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 367--367
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 367--367
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 371--371
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 371--371
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 371--371
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 371--371
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 375--375
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 375--375
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 375--375
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 375--375
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 379--379
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 379--379
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 379--379
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 379--379
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 383--383
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 383--383
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 383--383
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 383--383
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 387--387
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 387--387
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 387--387
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 387--387
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 391--391
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 391--391
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 391--391
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 391--391
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 395--395
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 395--395
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 395--395
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 395--395
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 399--399
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 399--399
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 399--399
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 399--399
+
+ []
+
+[13
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 418.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 422--422
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 422--422
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 422--422
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 422--422
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 422--422
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 433--433
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 433--433
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 433--433
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 433--433
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 437--437
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 437--437
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 437--437
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 437--437
+
+ []
+
+[14
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 456.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 460--460
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 460--460
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 460--460
+\OT1/ptm/m/n/10 Gen-eral
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 460--460
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (0.52452pt too wide) in paragraph at lines 460--460
+\OT1/ptm/m/n/10 Freighter 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 460--460
+\OT1/ptm/m/n/10 Sunset
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 460--460
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 471--471
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 471--471
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 471--471
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 471--471
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 475--475
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 475--475
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 475--475
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 475--475
+
+ []
+
+[15
+
+]
+File: amtraklogo.jpg Graphic file (type jpg)
+<use amtraklogo.jpg>
+Package pdftex.def Info: amtraklogo.jpg  used on input line 494.
+(pdftex.def)             Requested size: 88.32977pt x 29.10867pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 498--498
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Overfull \hbox (1.09457pt too wide) in paragraph at lines 498--498
+\OT1/ptm/m/n/10 Midnight
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 498--498
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 498--498
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 498--498
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 505--505
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 505--505
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 505--505
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 505--505
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 509--509
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 509--509
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 509--509
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 509--509
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 513--513
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 513--513
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 513--513
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 513--513
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 517--517
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 517--517
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 517--517
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 517--517
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 521--521
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 521--521
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 521--521
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 521--521
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 525--525
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 525--525
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 525--525
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 525--525
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 529--529
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 529--529
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 529--529
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 529--529
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 533--533
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 533--533
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 533--533
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 533--533
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 537--537
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 537--537
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 537--537
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 537--537
+
+ []
+
+[16
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 556.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 560--560
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 560--560
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 560--560
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 560--560
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 560--560
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 571--571
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 571--571
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 571--571
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 571--571
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 575--575
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 575--575
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 575--575
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 575--575
+
+ []
+
+[17
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 594.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 598--598
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 598--598
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 598--598
+\OT1/ptm/m/n/10 Gen-eral
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 598--598
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (0.52452pt too wide) in paragraph at lines 598--598
+\OT1/ptm/m/n/10 Freighter 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 598--598
+\OT1/ptm/m/n/10 Sunset
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 598--598
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 609--609
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 609--609
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 609--609
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 609--609
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 613--613
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 613--613
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 613--613
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 613--613
+
+ []
+
+[18
+
+]
+File: amtraklogo.jpg Graphic file (type jpg)
+<use amtraklogo.jpg>
+Package pdftex.def Info: amtraklogo.jpg  used on input line 632.
+(pdftex.def)             Requested size: 88.32977pt x 29.10867pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 636--636
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Overfull \hbox (1.09457pt too wide) in paragraph at lines 636--636
+\OT1/ptm/m/n/10 Midnight
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 636--636
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 636--636
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 636--636
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 643--643
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 643--643
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 643--643
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 643--643
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 647--647
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 647--647
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 647--647
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 647--647
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 651--651
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 651--651
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 651--651
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 651--651
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 655--655
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 655--655
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 655--655
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 655--655
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 659--659
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 659--659
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 659--659
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 659--659
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 663--663
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 663--663
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 663--663
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 663--663
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 667--667
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 667--667
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 667--667
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 667--667
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 671--671
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 671--671
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 671--671
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 671--671
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 675--675
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 675--675
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 675--675
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 675--675
+
+ []
+
+[19
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 694.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 698--698
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 698--698
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 698--698
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 698--698
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 698--698
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 709--709
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 709--709
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 709--709
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 709--709
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 713--713
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 713--713
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 713--713
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 713--713
+
+ []
+
+[20
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 732.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 736--736
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 736--736
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 736--736
+\OT1/ptm/m/n/10 Gen-eral
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 736--736
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (0.52452pt too wide) in paragraph at lines 736--736
+\OT1/ptm/m/n/10 Freighter 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 736--736
+\OT1/ptm/m/n/10 Sunset
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 736--736
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 747--747
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 747--747
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 747--747
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 747--747
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 751--751
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 751--751
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 751--751
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 751--751
+
+ []
+
+[21
+
+]
+File: amtraklogo.jpg Graphic file (type jpg)
+<use amtraklogo.jpg>
+Package pdftex.def Info: amtraklogo.jpg  used on input line 770.
+(pdftex.def)             Requested size: 88.32977pt x 29.10867pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 774--774
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Overfull \hbox (1.09457pt too wide) in paragraph at lines 774--774
+\OT1/ptm/m/n/10 Midnight
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 774--774
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 774--774
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 774--774
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 781--781
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 781--781
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 781--781
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 781--781
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 785--785
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 785--785
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 785--785
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 785--785
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 789--789
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 789--789
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 789--789
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 789--789
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 793--793
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 793--793
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 793--793
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 793--793
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 797--797
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 797--797
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 797--797
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 797--797
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 801--801
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 801--801
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 801--801
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 801--801
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 805--805
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 805--805
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 805--805
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 805--805
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 809--809
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 809--809
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 809--809
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 809--809
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 813--813
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 813--813
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 813--813
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 813--813
+
+ []
+
+[22
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 832.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 836--836
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 836--836
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 836--836
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 836--836
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 836--836
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 847--847
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 847--847
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 847--847
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 847--847
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 851--851
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 851--851
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 851--851
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 851--851
+
+ []
+
+[23
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 870.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 874--874
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 874--874
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 874--874
+\OT1/ptm/m/n/10 Gen-eral
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 874--874
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (0.52452pt too wide) in paragraph at lines 874--874
+\OT1/ptm/m/n/10 Freighter 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 874--874
+\OT1/ptm/m/n/10 Sunset
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 874--874
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 885--885
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 885--885
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 885--885
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 885--885
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 889--889
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 889--889
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 889--889
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 889--889
+
+ []
+
+[24
+
+]
+File: amtraklogo.jpg Graphic file (type jpg)
+<use amtraklogo.jpg>
+Package pdftex.def Info: amtraklogo.jpg  used on input line 908.
+(pdftex.def)             Requested size: 88.32977pt x 29.10867pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 912--912
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Overfull \hbox (1.09457pt too wide) in paragraph at lines 912--912
+\OT1/ptm/m/n/10 Midnight
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 912--912
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 912--912
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 912--912
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 919--919
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 919--919
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 919--919
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 919--919
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 923--923
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 923--923
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 923--923
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 923--923
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 927--927
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 927--927
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 927--927
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 927--927
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 931--931
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 931--931
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 931--931
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 931--931
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 935--935
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 935--935
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 935--935
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 935--935
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 939--939
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 939--939
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 939--939
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 939--939
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 943--943
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 943--943
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 943--943
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 943--943
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 947--947
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 947--947
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 947--947
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 947--947
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 951--951
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 951--951
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 951--951
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 951--951
+
+ []
+
+[25
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 970.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 974--974
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 974--974
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 974--974
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 974--974
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 974--974
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 985--985
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 985--985
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 985--985
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 985--985
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 989--989
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 989--989
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 989--989
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 989--989
+
+ []
+
+[26
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 1008.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 1012--1012
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1012--1012
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1012--1012
+\OT1/ptm/m/n/10 Gen-eral
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1012--1012
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (0.52452pt too wide) in paragraph at lines 1012--1012
+\OT1/ptm/m/n/10 Freighter 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1012--1012
+\OT1/ptm/m/n/10 Sunset
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 1012--1012
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1023--1023
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1023--1023
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1023--1023
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1023--1023
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1027--1027
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1027--1027
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1027--1027
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1027--1027
+
+ []
+
+[27
+
+]
+File: amtraklogo.jpg Graphic file (type jpg)
+<use amtraklogo.jpg>
+Package pdftex.def Info: amtraklogo.jpg  used on input line 1046.
+(pdftex.def)             Requested size: 88.32977pt x 29.10867pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 1050--1050
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Overfull \hbox (1.09457pt too wide) in paragraph at lines 1050--1050
+\OT1/ptm/m/n/10 Midnight
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1050--1050
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1050--1050
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1050--1050
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1057--1057
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1057--1057
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1057--1057
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1057--1057
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1061--1061
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1061--1061
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1061--1061
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1061--1061
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1065--1065
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1065--1065
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1065--1065
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1065--1065
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1069--1069
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1069--1069
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1069--1069
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1069--1069
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1073--1073
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1073--1073
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1073--1073
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1073--1073
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1077--1077
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1077--1077
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1077--1077
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1077--1077
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1081--1081
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1081--1081
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1081--1081
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1081--1081
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1085--1085
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1085--1085
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1085--1085
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1085--1085
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1089--1089
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1089--1089
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1089--1089
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1089--1089
+
+ []
+
+[28
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 1108.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 1112--1112
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1112--1112
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 1112--1112
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1112--1112
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1112--1112
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1123--1123
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1123--1123
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1123--1123
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1123--1123
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1127--1127
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1127--1127
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1127--1127
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1127--1127
+
+ []
+
+[29
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 1146.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 1150--1150
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1150--1150
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1150--1150
+\OT1/ptm/m/n/10 Gen-eral
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1150--1150
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (0.52452pt too wide) in paragraph at lines 1150--1150
+\OT1/ptm/m/n/10 Freighter 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1150--1150
+\OT1/ptm/m/n/10 Sunset
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 1150--1150
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1161--1161
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1161--1161
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1161--1161
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1161--1161
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1165--1165
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1165--1165
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1165--1165
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1165--1165
+
+ []
+
+[30
+
+]
+File: amtraklogo.jpg Graphic file (type jpg)
+<use amtraklogo.jpg>
+Package pdftex.def Info: amtraklogo.jpg  used on input line 1184.
+(pdftex.def)             Requested size: 88.32977pt x 29.10867pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 1188--1188
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Overfull \hbox (1.09457pt too wide) in paragraph at lines 1188--1188
+\OT1/ptm/m/n/10 Midnight
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1188--1188
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1188--1188
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1188--1188
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1195--1195
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1195--1195
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1195--1195
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1195--1195
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1199--1199
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1199--1199
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1199--1199
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1199--1199
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1203--1203
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1203--1203
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1203--1203
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1203--1203
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1207--1207
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1207--1207
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1207--1207
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1207--1207
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1211--1211
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1211--1211
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1211--1211
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1211--1211
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1215--1215
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1215--1215
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1215--1215
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1215--1215
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1219--1219
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1219--1219
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1219--1219
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1219--1219
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1223--1223
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1223--1223
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1223--1223
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1223--1223
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1227--1227
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1227--1227
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1227--1227
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1227--1227
+
+ []
+
+[31
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 1246.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 1250--1250
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1250--1250
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 1250--1250
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1250--1250
+\OT1/ptm/m/n/10 Evening
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1250--1250
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1261--1261
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1261--1261
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1261--1261
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1261--1261
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1265--1265
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1265--1265
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1265--1265
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1265--1265
+
+ []
+
+[32
+
+]
+File: LHBSLogo.png Graphic file (type png)
+<use LHBSLogo.png>
+Package pdftex.def Info: LHBSLogo.png  used on input line 1284.
+(pdftex.def)             Requested size: 36.13489pt x 36.13489pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 1288--1288
+[]\OT1/ptm/m/n/10 Train
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1288--1288
+\OT1/ptm/m/n/10 Morning
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1288--1288
+\OT1/ptm/m/n/10 Gen-eral
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1288--1288
+\OT1/ptm/m/n/10 Noon
+ []
+
+
+Overfull \hbox (0.52452pt too wide) in paragraph at lines 1288--1288
+\OT1/ptm/m/n/10 Freighter 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1288--1288
+\OT1/ptm/m/n/10 Sunset
+ []
+
+
+Overfull \hbox (5.56496pt too wide) in paragraph at lines 1288--1288
+\OT1/ptm/m/n/10 Graveyard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1299--1299
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1299--1299
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1299--1299
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1299--1299
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1303--1303
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1303--1303
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1303--1303
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1303--1303
+
+ []
+
+[33
+
+]
+<LJandBSMain.png, id=112, 498.86375pt x 393.47pt>
+File: LJandBSMain.png Graphic file (type png)
+<use LJandBSMain.png>
+Package pdftex.def Info: LJandBSMain.png  used on input line 1319.
+(pdftex.def)             Requested size: 498.86253pt x 393.46902pt.
+ [34
+
+ <./LJandBSMain.png>] (./LJandBS.aux) ) 
+Here is how much of TeX's memory you used:
+ 1917 strings out of 478051
+ 31401 string characters out of 5840943
+ 1889330 words of memory out of 5000000
+ 22041 multiletter control sequences out of 15000+600000
+ 539228 words of font info for 82 fonts, out of 8000000 for 9000
+ 14 hyphenation exceptions out of 8191
+ 57i,10n,62p,303b,214s stack positions out of 10000i,1000n,20000p,200000b,200000s
+{/usr/share/texlive/texmf-dist/fonts/enc
+/dvips/base/8r.enc}</usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvr
+8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/sh
+are/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb>
+Output written on LJandBS.pdf (34 pages, 101232 bytes).
+PDF statistics:
+ 133 PDF objects out of 1000 (max. 8388607)
+ 86 compressed objects within 1 object stream
+ 0 named destinations out of 1000 (max. 500000)
+ 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+

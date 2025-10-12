@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:04
-//  Last Modified : <251009.1127>
+//  Last Modified : <251011.2225>
 //
 //  Description	
 //
@@ -57,6 +57,10 @@ use std::str::FromStr;
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::collections::btree_map::*;
+use std::io::{BufReader,Read};
+use std::fs::File;
+use std::io::{Error, ErrorKind};
+use crate::primio::*;
 
 /// This class records a train sitting on a storage track during a specified 
 /// time frame.  The train number (symbol) might change when the train leaves 
@@ -186,6 +190,57 @@ impl Occupied {
         };
         Ok((Self{ trainnum: trainnum, from: from, until: until, 
                   trainnum2: trainnum2}, pos))
+    }
+    pub fn Read(inp: &mut BufReader<File>) -> std::io::Result<Option<Self>> {
+        let mut ch: char;
+        let mut byte: [u8; 1] = [0; 1]; 
+        loop {
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char;
+            match ch {
+                ' '|'\t'|'\n' => (),
+                _ => {break;},
+            }
+        }
+        for c in "<Occupied".chars() {
+            if c != ch {return Ok(None);}
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char;
+        }
+        let trainnum: String = match ReadQuotedString(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
+        };
+        let from: f64 = match ReadF64(inp)? {
+            None => {return Ok(None);}, 
+            Some(f) => f,
+        };
+        let status = inp.read(&mut byte)?;
+        if status == 0 {return Ok(None);}
+        ch = byte[0] as char;
+        if ch != ':' {
+            return Err(Error::new(ErrorKind::Other,"Syntax error: missing ':'"));
+        }
+        let until: f64 = match ReadF64(inp)? {
+            None => {return Ok(None);},
+            Some(u) => u,
+        };
+        let trainnum2: String = match ReadQuotedString(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
+        };
+        loop {
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char; 
+            match ch {
+                '>' => {return Ok(Some(Self::new(trainnum,from,until,trainnum2)));},
+                ' '|'\t'|'\n' => {continue;},
+                _ => {return Err(Error::new(ErrorKind::Other,"Syntax error: missing '>'"));},
+            };
+        }
     }
 }
 
@@ -643,6 +698,52 @@ impl StorageTrack {
     pub fn  occupations_mut(&mut self) -> ValuesMut<'_, TimeRange, Occupied> {
         self.occupations.values_mut()
     }
+    pub fn Read(inp: &mut BufReader<File>) -> std::io::Result<Option<Self>> {
+        let mut ch: char;
+        let mut byte: [u8; 1] = [0; 1]; 
+        loop {
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char;
+            match ch {
+                ' '|'\t'|'\n' => (),
+                _ => {break;},
+            }
+        }
+        for c in "<StorageTrack".chars() {
+            if c != ch {return Ok(None);}
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char;
+        }
+        let name: String = match ReadQuotedString(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
+        };
+        let mut this = Self {name: name, occupations: BTreeMap::new(),};
+        let count: usize = match ReadUSize(inp)? {
+            None => {return Ok(None);},
+            Some(c) => c,
+        };
+        for i in 0..count {
+            let temp: Occupied = match Occupied::Read(inp)? {
+                None => {return Ok(None);},
+                Some(occ) => occ,
+            };
+            this.occupations.insert(TimeRange::new(temp.From(),temp.Until()),
+                                    temp);
+        }
+        loop {
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char; 
+            match ch {
+                '>' => {return Ok(Some(this));},
+                ' '|'\t'|'\n' => {continue;},
+                _ => {return Err(Error::new(ErrorKind::Other,"Syntax error: missing '>'"));},
+            };
+        }
+    }
 }
 
 /** Storage track map. Indexed by name.
@@ -672,8 +773,8 @@ impl fmt::Display for Station {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "<Station \"{}\" {:5.3} {} {}", self.name, self.smile, 
             match self.duplicateStationIndex {
-                None => String::from("None"),
-                Some(u) => format!("Some({})",u),
+                None => String::from("-1"),
+                Some(u) => format!("{}",u),
             }, self.storageTracks.len())?;
         for (n, st) in self.storageTracks.iter() {
             write!(f," \"{}\" {}",n,st)?;
@@ -682,7 +783,7 @@ impl fmt::Display for Station {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug)]
 pub enum StationParseError {
     StartSyntaxError,
     NameSyntaxError,
@@ -690,9 +791,15 @@ pub enum StationParseError {
     CountSyntaxError,
     DuplSyntaxError,
     STNameSyntaxError,
-    STrackSyntaxError,
+    STrackSyntaxError(StorageTrackParseError),
     ExtraCharacters,
     MissingBracket,
+}
+
+impl From<StorageTrackParseError> for StationParseError {
+    fn from(error: StorageTrackParseError) -> Self {
+        StationParseError::STrackSyntaxError(error)
+    }
 }
 
 impl fmt::Display for StationParseError {
@@ -710,8 +817,8 @@ impl fmt::Display for StationParseError {
                 write!(f,"Missing duplicate station index"),
             StationParseError::STNameSyntaxError =>
                 write!(f,"Missing Storage track name"),
-            StationParseError::STrackSyntaxError =>
-                write!(f,"Missing StorageTrack"),
+            StationParseError::STrackSyntaxError(e) =>
+                write!(f,"Missing StorageTrack: {}",e.to_string()),
             StationParseError::ExtraCharacters =>
                 write!(f,"Extra characters"),
             StationParseError::MissingBracket =>
@@ -891,25 +998,17 @@ impl Station {
             Some((n, m)) => {
                 let temp = string[pos..n+pos].trim();
                 pos += n+m.len();
-                if temp == "None" {
+                if temp == "-1" {
                     dupl = None;
                 } else {
-                    match temp.match_indices("Some(").next() {
-                        None => return Err(StationParseError::DuplSyntaxError),
-                        Some((n, m)) => match temp[m.len()..].match_indices(')').next() {
-                            None =>  return Err(StationParseError::DuplSyntaxError),
-                            Some((n, m2)) => {
-                                let d = match temp[m.len()..n].parse::<usize>() {
-                                    Ok(x) => x,
-                                    Err(p) => 
-                                        return Err(StationParseError::DuplSyntaxError),
-                                };
-                                dupl = Some(d);
-                            },
-                        },
-                    };
-                }
-            },
+                    let d = match temp.parse::<usize>() {
+                        Ok(x) => x,
+                        Err(p) => 
+                            return Err(StationParseError::DuplSyntaxError),
+                     };
+                     dupl = Some(d);
+                };
+            }
         };
         result.SetDuplicateStationIndex(dupl);
         while string[pos..pos+1] == *" " || string[pos..pos+1] == *"\t" ||
@@ -928,18 +1027,18 @@ impl Station {
             },
         };
         for i in 0..count {
-            let track_name: String;
-            match string[pos..].match_indices('"').next() {
-                None => return Err(StationParseError::STNameSyntaxError),
-                Some((n, m)) => pos += n + m.len(),
-            };
-            match string[pos..].match_indices('"').next() {
-                None => return Err(StationParseError::STNameSyntaxError),
-                Some((n, m)) => {
-                    track_name = String::from(&string[pos..n+pos]);
-                    pos += n + m.len();
-                },
-            };
+            //let track_name: String;
+            //match string[pos..].match_indices('"').next() {
+            //    None => return Err(StationParseError::STNameSyntaxError),
+            //    Some((n, m)) => pos += n + m.len(),
+            //};
+            //match string[pos..].match_indices('"').next() {
+            //    None => return Err(StationParseError::STNameSyntaxError),
+            //    Some((n, m)) => {
+            //        track_name = String::from(&string[pos..n+pos]);
+            //        pos += n + m.len();
+            //    },
+            //};
             while string[pos..pos+1] == *" " || string[pos..pos+1] == *"\t" ||
                   string[pos..pos+1] == *"\n" {
                 pos += 1;
@@ -949,18 +1048,73 @@ impl Station {
                     pos += p;
                     st
                 },
-                Err(p) => return Err(StationParseError::STrackSyntaxError),
+                Err(p) => return Err(StationParseError::from(p)),
             };
-            result.storageTracks.insert(track_name,track);
+            result.storageTracks.insert(track.Name(),track);
         }
-        if count > 0 {
-            match string[pos..].match_indices('>').next() {
-                None => return Err(StationParseError::MissingBracket),
-                Some((n, m)) => pos += n + m.len(),
-            }
+        match string[pos..].match_indices('>').next() {
+            None => return Err(StationParseError::MissingBracket),
+            Some((n, m)) => pos += n + m.len(),
         }
                 
         Ok((result,pos))
+    }
+    pub fn Read(inp: &mut BufReader<File>) -> std::io::Result<Option<Self>> {
+        let mut ch: char;
+        let mut byte: [u8; 1] = [0; 1]; 
+        loop {
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char;
+            match ch {
+                ' '|'\t'|'\n' => (),
+                _ => {break;},
+            }
+        }
+        for c in "<Station".chars() {
+            if c != ch {return Ok(None);}
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char;
+        }
+        let name: String = match ReadQuotedString(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
+        };
+        let smile: f64 = match ReadF64(inp)? {
+            None => {return Ok(None);},
+            Some(f) => f,
+        };
+        let dupl: Option<usize> = match ReadISize(inp)? {
+            None => {return Ok(None);},
+            Some(-1) => None,
+            Some(d) if d >= 0 => Some(d as usize),
+            _ => {return Ok(None);}, 
+        };
+        let count: usize = match ReadUSize(inp)? {
+            None => {return Ok(None);},
+            Some(c) => c,
+        };
+        let mut this = Self {name: name, smile: smile, 
+                             duplicateStationIndex: dupl,
+                             storageTracks: BTreeMap::new() };
+        for i in 0..count {
+            let temp: StorageTrack = match StorageTrack::Read(inp)? {
+                None => {return Ok(None);},
+                Some(st) => st,
+            };
+            this.storageTracks.insert(temp.Name(),temp);
+        }
+        loop {
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char; 
+            match ch {
+                '>' => {return Ok(Some(this));},
+                ' '|'\t'|'\n' => {continue;},
+                _ => {return Err(Error::new(ErrorKind::Other,"Syntax error: missing '>'"));},
+            };
+        }
     }
 }    
 
@@ -1244,27 +1398,27 @@ mod tests {
     #[test]
     fn Station_AddStorageTrack () {
         let mut station = Station::new(String::from("Station 1"), 45.7);
-        let st = station.AddStorageTrack(String::from("Track 1"));
+        let st = station.AddStorageTrack(&String::from("Track 1"));
         assert_eq!(st,Some(&mut StorageTrack::new(String::from("Track 1"))));
     }
     #[test]
     fn Station_FindStorageTrack () {
         let mut station = Station::new(String::from("Station 1"), 45.7); 
-        station.AddStorageTrack(String::from("Track 1"));
-        assert_eq!(station.FindStorageTrack(String::from("Track 1")),
+        station.AddStorageTrack(&String::from("Track 1"));
+        assert_eq!(station.FindStorageTrack(&String::from("Track 1")),
                     Some(&StorageTrack::new(String::from("Track 1"))));
     }
     #[test]
     fn Station_FindStorageTrack_mut () {
         let mut station = Station::new(String::from("Station 1"), 45.7); 
-        station.AddStorageTrack(String::from("Track 1"));
-        assert_eq!(station.FindStorageTrack_mut(String::from("Track 1")),
+        station.AddStorageTrack(&String::from("Track 1"));
+        assert_eq!(station.FindStorageTrack_mut(&String::from("Track 1")),
                     Some(&mut StorageTrack::new(String::from("Track 1"))));
     }
     #[test]
     fn Station_FindTrackTrainIsStoredOn () {
         let mut station = Station::new(String::from("Station 1"), 45.7);
-        let track = station.AddStorageTrack(String::from("Track 1")).unwrap();
+        let track = station.AddStorageTrack(&String::from("Track 1")).unwrap();
         track.StoreTrain(String::from("Train1"),4.2,5.1,String::from(""));
         let other = track.clone();
         let thetrack = station.FindTrackTrainIsStoredOn(String::from("Train1"),4.2,5.1).unwrap();
@@ -1274,7 +1428,7 @@ mod tests {
     #[test]
     fn Station_FindTrackTrainIsStoredOn_mut () {
         let mut station = Station::new(String::from("Station 1"), 45.7);
-        let track = station.AddStorageTrack(String::from("Track 1")).unwrap();
+        let track = station.AddStorageTrack(&String::from("Track 1")).unwrap();
         track.StoreTrain(String::from("Train1"),4.2,5.1,String::from(""));
         let other = track.clone();
         let thetrack = station.FindTrackTrainIsStoredOn_mut(String::from("Train1"),4.2,5.1).unwrap();
@@ -1284,13 +1438,13 @@ mod tests {
     #[test]
     fn Station_NumberOfStorageTracks () {
         let mut station = Station::new(String::from("Station 1"), 45.7); 
-        station.AddStorageTrack(String::from("Track 1"));
+        station.AddStorageTrack(&String::from("Track 1"));
         assert_eq!(station.NumberOfStorageTracks(),1);
     }
     #[test]
     fn Station_Display () {
         let mut station = Station::new(String::from("Station 1"), 45.7);
-        let track = station.AddStorageTrack(String::from("Track 1")).unwrap();
+        let track = station.AddStorageTrack(&String::from("Track 1")).unwrap();
         track.StoreTrain(String::from("Train1"),4.2,5.1,String::from(""));
         let output = format!("{}",station);
         assert_eq!(output,String::from("<Station \"Station 1\" 45.700 None 1 \"Track 1\" <StorageTrack \"Track 1\" 1 <TimeRange 4.20 5.10> <Occupied \"Train1\" 4.20:5.10 \"\"> >>"));
@@ -1298,7 +1452,7 @@ mod tests {
     #[test]
     fn Station_from_str () {
         let mut station = Station::new(String::from("Station 1"), 45.7);
-        let track = station.AddStorageTrack(String::from("Track 1")).unwrap();
+        let track = station.AddStorageTrack(&String::from("Track 1")).unwrap();
         track.StoreTrain(String::from("Train1"),4.2,5.1,String::from(""));
         let output = format!("{}",station);
         let otherstation = match Station::from_str(&output) {

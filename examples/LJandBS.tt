@@ -1,0 +1,189 @@
+LJandBS
+1440 15
+10
+<Station "CWC Station North" 0 9 1 
+<StorageTrack "Main" 0 
+>
+>
+<Station "CWC Reverse Switch East" 1.49645 8 0 
+>
+<Station "LJ Station North" 4.37353 7 1 
+<StorageTrack "Station" 0 
+>
+>
+<Station "TJ Interlocking West" 5.23532 6 2 
+<StorageTrack "Track 1" 0 
+>
+<StorageTrack "Track 2" 0 
+>
+>
+<Station "CWJ Interlocking" 8.14501 -1 0 
+>
+<Station "Bench Station" 9.59551 -1 1 
+<StorageTrack "Station" 0 
+>
+>
+<Station "TJ Interlocking East" 11.8012 3 2 
+<StorageTrack "Track 1" 0 
+>
+<StorageTrack "Track 2" 0 
+>
+>
+<Station "LJ Station Sourth" 13.8153 2 1 
+<StorageTrack "Station" 0 
+>
+>
+<Station "CWC Reverse Switch West" 15.9823 1 0 
+>
+<Station "CWC Station South" 17.0451 0 1 
+<StorageTrack "Main" 0 
+>
+>
+3
+<Cab "blue" "blue">
+<Cab "green" "green">
+<Cab "yellow" "yellow">
+12
+<Train "Morning Skier" "100" 50 1 360 0 1 3 10
+<Stop Origin 0 "" 0 "blue" 0>
+<Stop Transit 0 "" 1 "blue" 0>
+<Stop Transit 9.75176 "" 2 "blue" 0>
+<Stop Transit 0 "" 3 "blue" 0>
+<Stop Transit 0 "" 4 "blue" 0>
+<Stop Transit 59.7336 "" 5 "blue" 0>
+<Stop Transit 0 "" 6 "blue" 0>
+<Stop Transit 9.9362 "" 7 "blue" 0>
+<Stop Transit 0 "" 8 "blue" 0>
+<Stop Terminate 0 "" 9 "" 0>
+>
+<Train "Noon Skier" "110" 50 1 720 0 1 3 10
+<Stop Origin 0 "" 0 "blue" 0>
+<Stop Transit 0 "" 1 "blue" 0>
+<Stop Transit 9.75176 "" 2 "blue" 0>
+<Stop Transit 0 "" 3 "blue" 0>
+<Stop Transit 0 "" 4 "blue" 0>
+<Stop Transit 59.7336 "" 5 "blue" 0>
+<Stop Transit 0 "" 6 "blue" 0>
+<Stop Transit 9.9362 "" 7 "blue" 0>
+<Stop Transit 0 "" 8 "blue" 0>
+<Stop Terminate 0 "" 9 "" 0>
+>
+<Train "Evening Skier" "130" 50 1 1080 0 1 3 10
+<Stop Origin 0 "" 0 "blue" 0>
+<Stop Transit 0 "" 1 "blue" 0>
+<Stop Transit 9.75176 "" 2 "blue" 0>
+<Stop Transit 0 "" 3 "blue" 0>
+<Stop Transit 0 "" 4 "blue" 0>
+<Stop Transit 59.7336 "" 5 "blue" 0>
+<Stop Transit 0 "" 6 "blue" 0>
+<Stop Transit 9.9362 "" 7 "blue" 0>
+<Stop Transit 0 "" 8 "blue" 0>
+<Stop Terminate 0 "" 9 "" 0>
+>
+<Train "Midnight Skier" "140" 50 1 0 0 1 3 10
+<Stop Origin 0 "" 0 "blue" 0>
+<Stop Transit 0 "" 1 "blue" 0>
+<Stop Transit 9.75176 "" 2 "blue" 0>
+<Stop Transit 0 "" 3 "blue" 0>
+<Stop Transit 0 "" 4 "blue" 0>
+<Stop Transit 59.7336 "" 5 "blue" 0>
+<Stop Transit 0 "" 6 "blue" 0>
+<Stop Transit 9.9362 "" 7 "blue" 0>
+<Stop Transit 0 "" 8 "blue" 0>
+<Stop Terminate 0 "" 9 "" 0>
+>
+<Train "Morning Stacks" "200" 45 2 390 5.23532 1 4 4
+<Stop Origin 0 "" 3 "yellow" 1 2>
+<Stop Transit 0 "" 4 "yellow" 0>
+<Stop Transit 0 "" 5 "yellow" 0>
+<Stop Terminate 0 "" 6 "" 0>
+>
+<Train "Noon Stacks" "210" 45 2 750 5.23532 1 4 4
+<Stop Origin 0 "" 3 "yellow" 1 2>
+<Stop Transit 0 "" 4 "yellow" 0>
+<Stop Transit 0 "" 5 "yellow" 0>
+<Stop Terminate 0 "" 6 "" 0>
+>
+<Train "Evening Stacks" "220" 45 2 1110 5.23532 1 4 4
+<Stop Origin 0 "" 3 "yellow" 1 2>
+<Stop Transit 0 "" 4 "yellow" 0>
+<Stop Transit 0 "" 5 "yellow" 0>
+<Stop Terminate 0 "" 6 "" 0>
+>
+<Train "Graveyard Stacker" "230" 45 2 30 5.23532 1 4 4
+<Stop Origin 0 "" 3 "yellow" 1 2>
+<Stop Transit 0 "" 4 "yellow" 0>
+<Stop Transit 0 "" 5 "yellow" 0>
+<Stop Terminate 0 "" 6 "" 0>
+>
+<Train "Morning General Freight" "300" 40 3 400 5.23532 1 4 4
+<Stop Origin 0 "" 3 "green" 1 1>
+<Stop Transit 30.6355 "" 4 "green" 0>
+<Stop Transit 0 "" 5 "green" 0>
+<Stop Terminate 0 "" 6 "" 0>
+>
+<Train "Noon Freighter" "310" 40 3 760 5.23532 1 4 4
+<Stop Origin 0 "" 3 "green" 1 1>
+<Stop Transit 30 "" 4 "green" 0>
+<Stop Transit 0 "" 5 "green" 0>
+<Stop Terminate 0 "" 6 "" 0>
+>
+<Train "Sunset Freight" "320" 40 3 1120 5.23532 1 4 4
+<Stop Origin 0 "" 3 "green" 1 1>
+<Stop Transit 30.6355 "" 4 "green" 0>
+<Stop Transit 0 "" 5 "green" 0>
+<Stop Terminate 0 "" 6 "" 0>
+>
+<Train "Graveyard Freight" "330" 40 3 40 5.23532 1 4 4
+<Stop Origin 0 "" 3 "green" 1 1>
+<Stop Transit 30.6355 "" 4 "green" 0>
+<Stop Transit 0 "" 5 "green" 0>
+<Stop Terminate 0 "" 6 "" 0>
+>
+5
+"General Freights (class 3) must wait on the yard track until the intermodal stack train clears TJ Interlocking and is fully on its parking track."
+"Intermodal Stack trains (Class 2) must wait at TJ Interlocking until the passenger train clears TJ Interlocking."
+"Runs Daily."
+"Daily, except Sundays and Holidays."
+"Test note."
+26
+"Group,2,SectionTOP" "%
+\\includegraphics{LHBSLogo.png} \\\\
+%"
+"SubTitle" "Employee Timetable Number 1"
+"TimeFormat" "24"
+"Date" "\\today"
+"AllTrainsSectionTOP" ""
+"Group,1,ClassHeader" "Passenger Trains"
+"NotesTOP" "%
+\\begin{centering}
+\\includegraphics{LJandBSMain.png} \\\\
+\\end{centering}
+%"
+"Group,3,Trains" ""
+"Title" "Library Juction and Bench Station"
+"StationColWidth" "1.5"
+"TimeColWidth" "0.5"
+"ExtraPreamble" ""
+"Group,3,SectionTOP" "%
+\\includegraphics{LHBSLogo.png} \\\\
+%"
+"Group,2,Trains" ""
+"BeforeTOC" "%
+\\begin{centering}
+\\includegraphics[scale=4.0]{LHBSLogo.png} \\\\
+\\end{centering}
+%"
+"AMPMFormat" "a"
+"Group,1,SectionTOP" "%
+\\includegraphics{amtraklogo.jpg}
+%"
+"UseMultipleTables" "true"
+"Group,2,ClassHeader" "Intermodal Trains"
+"AllTrainsHeader" "All Trains"
+"Group,1,Trains" ""
+"TOCP" "true"
+"NSides" "double"
+"DirectionName" "Westbound"
+"GroupBy" "Class"
+"Group,3,ClassHeader" "Freight Trains"

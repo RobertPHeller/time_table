@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:30
-//  Last Modified : <251009.1142>
+//  Last Modified : <251011.1110>
 //
 //  Description	
 //
@@ -50,7 +50,9 @@ use std::fmt;
 use std::str::FromStr;
 use std::collections::HashMap;
 use std::slice::{Iter,IterMut};
-
+use std::io::{Write,BufWriter,BufReader,Read,Error,ErrorKind};
+use std::fs::File;
+use crate::primio::*;
 
 
 /** @brief Type of stop.  
@@ -61,6 +63,48 @@ use std::slice::{Iter,IterMut};
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum StopFlagType {Origin, Terminate, Transit}
 
+fn IsAlpha(ch: char) -> bool {
+    match ch {
+        'a'..='z' => true,
+        'A'..='Z' => true,
+        _         => false,
+    }
+}
+
+impl StopFlagType {
+    pub fn Read(inp: &mut BufReader<File>) -> std::io::Result<Option<Self>> {
+        let mut buffer: [u8; 1] = [0; 1];
+        let mut ch: char;
+        loop {
+            let status = inp.read(&mut buffer)?;
+            if status == 0 {return Ok(None);} 
+            ch = buffer[0] as char; 
+            match ch {
+                ' '|'\t'|'\n' => {continue;}
+                _ => {break;}
+            };
+        }
+        //let mut EOF: bool = false;
+        let mut temp: String = String::new();
+        loop {
+            if IsAlpha(ch) {
+                temp += &ch.to_string();
+            } else {
+                inp.seek_relative(-1)?;
+                break;
+            }
+            let status = inp.read(&mut buffer)?;
+            if status == 0 {/*EOF = true;*/break;} 
+            ch = buffer[0] as char;
+        }
+        match temp.as_ref() {
+            "Origin" => Ok(Some(StopFlagType::Origin)),
+            "Terminate" => Ok(Some(StopFlagType::Terminate)),
+            "Transit" => Ok(Some(StopFlagType::Transit)),
+            _ => Ok(None),
+        }
+    }
+}
 /** @brief This class implements a stop.
   *
   * This specifies the station the train goes
@@ -357,104 +401,85 @@ impl Stop {
         }
         Ok((result,pos))        
     }
-    pub fn Read(string: &str,cabs: &CabNameMap) -> Result<(Self, usize), StopParseError> {
-        let mut pos: usize;
-        match string.match_indices("<Stop ").next() {
-            None => return Err(StopParseError::StartSyntaxError),
-            Some((n, m)) => pos = n + m.len(),
-        };
-        let flag = match string[pos..].match_indices(' ').next() {
-            None => return Err(StopParseError::FlagMissing),
-            Some((n, m)) => {
-                let temp = &string[pos..n+pos];
-                pos += n + m.len();
-                match temp {
-                    "Origin" => StopFlagType::Origin,
-                    "Terminate" => StopFlagType::Terminate,
-                    "Transit" => StopFlagType::Transit,
-                    _ => return Err(StopParseError::FlagMissing)
-                }
-            },
-        };
-        let layover = match string[pos..].match_indices(' ').next() {
-            None => return Err(StopParseError::LayoverMissing),
-            Some((n, m)) => {
-                let temp = &string[pos..n+pos];
-                pos += n + m.len();
-                match temp.parse::<f64>() {
-                    Err(p) => return Err(StopParseError::LayoverMissing),
-                    Ok(l) => l,
-                }
-            },
-        };
-        match string[pos..].match_indices('"').next() {
-            None => return Err(StopParseError::StorageTrackNameMissing),
-            Some((n, m)) => pos += n + m.len(),
-        };
-        let stname = match string[pos..].match_indices('"').next() {
-            None => return Err(StopParseError::StorageTrackNameMissing),
-            Some((n, m)) => {
-                let temp = &string[pos..n+pos];
-                pos += n + m.len();
-                temp
-            },
-        };
-        pos += 1;
-        let stationindex = match string[pos..].match_indices(' ').next() {
-            None => return Err(StopParseError::StationIndexMissing),
-            Some((n, m)) => {
-                let temp = &string[pos..n+pos]; 
-                pos += n + m.len();
-                match temp.parse::<usize>() {
-                    Err(p) => return Err(StopParseError::StationIndexMissing),
-                    Ok(i) => i,
-                }
-            },
-        };
-        
-        match string[pos..].match_indices('"').next() {
-            None => return Err(StopParseError::CabNameMissing),
-            Some((n, m)) => pos += n + m.len(),
-        }
-        let cab: Option<Cab> = match string[pos..].match_indices('"').next() {
-            None => return Err(StopParseError::CabNameMissing),
-            Some((n, m)) => {
-                let temp = &string[pos..n+pos];
-                pos += n + m.len();
-                cabs.get(temp).cloned()
-            },
-        };
-        pos += 1;
-        let count = match string[pos..].match_indices(&[' ','>']).next() {
-            None => return Err(StopParseError::NoteCountMissing),
-            Some((n, m)) => {
-                let temp = &string[pos..pos+n];
-                pos += n + m.len();
-                match temp.parse::<usize>() {
-                    Err(p) => return Err(StopParseError::NoteCountMissing),
-                    Ok(i) => i,
-                }
+    pub fn Read(inp: &mut BufReader<File>,cabs: &CabNameMap) -> std::io::Result<Option<Self>> {
+        let mut ch: char;
+        let mut byte: [u8; 1] = [0; 1]; 
+        loop {
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char;
+            match ch {
+                ' '|'\t'|'\n' => (),
+                _ => {break;},
             }
+        }
+        for c in "<Stop".chars() {
+            if c != ch {return Ok(None);}
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char;
+        }
+        let flag: StopFlagType = match StopFlagType::Read(inp)? {
+            None => {return Ok(None);},
+            Some(f) => f,
+        };
+        let layover: f64= match ReadF64(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
+        };
+        let stname: String = match ReadQuotedString(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
+        };
+        let stationindex: usize = match ReadUSize(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
+        };
+        let cab: Option<Cab> = match ReadQuotedString(inp)? {
+            None => {return Ok(None);},
+            Some(cabname) => cabs.get(&cabname).cloned(),
+        };
+        let count: usize = match ReadUSize(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
         };
         let mut result = Stop::new(stationindex,flag);
         result.SetLayover(layover);
         result.SetCab(cab.as_ref());
         result.SetStorageTrackName(String::from(stname));
         for i in 0..count {
-            let note =  match string[pos..].match_indices(&[' ','>']).next() {
-                None => return Err(StopParseError::NoteIndexMissing),
-                Some((n, m)) => {
-                    let temp = &string[pos..pos+n];
-                    pos += n + m.len();
-                    match temp.parse::<usize>() {
-                        Err(p) => return Err(StopParseError::NoteIndexMissing),
-                        Ok(i) => i,
-                    }
-                }
+            let note: usize = match ReadUSize(inp)? {
+              None => {return Ok(None);},
+              Some(s) => s,
             };
             result.AddNote(note);
         }
-        Ok((result,pos))        
+        loop {
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char; 
+            match ch {
+                '>' => {return Ok(Some(result));},
+                ' '|'\t'|'\n' => {continue;},
+                _ => {return Err(Error::new(ErrorKind::Other,"Syntax error: missing '>'"));},
+            };
+        }
+    }
+    pub fn Write(&self,f: &mut BufWriter<File>) -> std::io::Result<()> {
+        write!(f, "<Stop {} {:5.3} \"{}\" {} \"{}\" {}",
+            match self.flag {
+                StopFlagType::Origin => "Origin",
+                StopFlagType::Terminate => "Terminate",
+                StopFlagType::Transit => "Transit",
+            }, self.layover, self.storage_track_name, self.stationindex,
+            match &self.cab {
+                None => String::from(""),
+                Some(c) => c.Name(),
+            }, self.notes.len())?;
+        for nindx in self.notes.iter() {
+            write!(f, " {}",nindx)?;
+        }
+        write!(f, ">")
     }
 
 }
@@ -874,134 +899,102 @@ impl Train {
                   startsmile: startsmile}, pos))
 
     }
-    pub fn Read(string: &str,cabs: &CabNameMap) -> Result<Self, TrainParseError> {
-        let mut pos: usize;
-        match string.match_indices("<Train \"").next() {
-            None => return Err(TrainParseError::StartSyntaxError),
-            Some((n, m)) => pos = n + m.len(),
-        };
-        let name = match string[pos..].match_indices('"').next() {
-            None => return Err(TrainParseError::MissingName),
-            Some((n, m)) => {
-                let temp = &string[pos..n+pos];
-                pos += n + m.len();
-                temp
-            },
-        };
-        match string[pos..].match_indices('"').next() {
-            None => return Err(TrainParseError::MissingNumber),
-            Some((n, m)) => pos += n + m.len(),
-        };
-        let number = match string[pos..].match_indices('"').next() {
-            None => return Err(TrainParseError::MissingNumber),
-            Some((n, m)) => {
-                let temp = &string[pos..n+pos];
-                pos += n + m.len();
-                temp
-            },
-        };
-        pos += 1;
-        let speed = match string[pos..].match_indices(&[' ','\n','\t']).next() {
-            None => return Err(TrainParseError::MissingSpeed),
-            Some((n, m)) => {
-                let temp = &string[pos..pos+n];
-                pos += n + m.len();
-                match temp.parse::<u32>() {
-                    Err(p) => return Err(TrainParseError::MissingSpeed),
-                    Ok(s) => s,
-                }
+    pub fn Read(inp: &mut BufReader<File>,cabs: &CabNameMap) -> std::io::Result<Option<Self>> {
+        let mut ch: char;
+        let mut byte: [u8; 1] = [0; 1]; 
+        loop {
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char;
+            match ch {
+                ' '|'\t'|'\n' => (),
+                _ => {break;},
             }
+        }
+        for c in "<Train".chars() {
+            if c != ch {return Ok(None);}
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char;
+        }
+        let name: String = match ReadQuotedString(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
         };
-        let classnumber = match string[pos..].match_indices(&[' ','\n','\t']).next() {
-            None => return Err(TrainParseError::MisingClassNumber),
-            Some((n, m)) => {
-                let temp = &string[pos..pos+n];
-                pos += n + m.len();
-                match temp.parse::<u32>() {
-                    Err(p) => return Err(TrainParseError::MisingClassNumber),
-                    Ok(s) => s,
-                }
-            }
+        let number: String = match ReadQuotedString(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
         };
-        let departure = match string[pos..].match_indices(&[' ','\n','\t']).next() {
-            None => return Err(TrainParseError::MissingDeparture),
-            Some((n, m)) => {
-                let temp = &string[pos..pos+n];
-                pos += n + m.len();
-                match temp.parse::<u32>() {
-                    Err(p) => return Err(TrainParseError::MissingDeparture),
-                    Ok(s) => s,
-                }
-            }
+        let speed: u32 = match ReadU32(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
         };
-        let startsmile = match string[pos..].match_indices(&[' ','\n','\t']).next() {
-            None => return Err(TrainParseError::MissingStartSMile),
-            Some((n, m)) => {
-                let temp = &string[pos..pos+n];
-                pos += n + m.len();
-                match temp.parse::<f64>() {
-                    Err(p) => return Err(TrainParseError::MissingStartSMile),
-                    Ok(s) => s,
-                }
-            }
+        let classnumber: u32 = match ReadU32(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
         };
-        let notecount = match string[pos..].match_indices(&[' ','\n','\t']).next() {
-            None => return Err(TrainParseError::MissingNoteCount),
-            Some((n, m)) => {
-                let temp = &string[pos..pos+n];
-                pos += n + m.len();
-                match temp.parse::<usize>() {
-                    Err(p) => return Err(TrainParseError::MissingNoteCount),
-                    Ok(s) => s,
-                }
-            }
+        let departure: u32 = match ReadU32(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
+        };
+        let startsmile: f64= match ReadF64(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
+        };
+        let notecount: usize = match ReadUSize(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
         };
         let mut notes: Vec<usize> = Vec::new();
         for i in 0..notecount {
-            let note = match string[pos..].match_indices(&[' ','\n','\t']).next() {
-                None => return Err(TrainParseError::MissingNoteCount),
-                Some((n, m)) => {
-                    let temp = &string[pos..pos+n];
-                    pos += n + m.len();
-                    match temp.parse::<usize>() {
-                        Err(p) => return Err(TrainParseError::MissingNoteCount),
-                        Ok(s) => s,
-                    }
-                }
+            let note: usize = match ReadUSize(inp)? {
+              None => {return Ok(None);},
+              Some(s) => s,
             };
             notes.push(note);
         }
-        let stopcount = match string[pos..].match_indices(&[' ','\n','\t']).next() {
-            None => return Err(TrainParseError::MissingStopCount),
-            Some((n, m)) => {
-                let temp = &string[pos..pos+n];
-                pos += n + m.len();
-                match temp.parse::<usize>() {
-                    Err(p) => return Err(TrainParseError::MissingStopCount),
-                    Ok(s) => s,
-                }
-            }
+        let stopcount: usize = match ReadUSize(inp)? {
+            None => {return Ok(None);},
+            Some(s) => s,
         };
         let mut stops: StopVector = Vec::new();
         for istop in 0..stopcount {
-            let stop = match Stop::Read(&string[pos..],cabs) {
-                        Err(p) => return Err(TrainParseError::MissingStop),
-                        Ok((s,p)) => {
-                            pos += p;
-                            s
-                        },
+            let stop = match Stop::Read(inp,cabs)? {
+                None => {return Ok(None);},
+                Some(s) => s,
             };
             stops.push(stop);
         }
-        match string[pos..].match_indices('>').next() {
-            None => return Err(TrainParseError::MissingBracket),
-            Some((n,m)) => /* pos += n+m.len() */ (),
-        };
-        Ok(Self {name: String::from(name), number: String::from(number), speed: speed, 
-                  classnumber: classnumber, notes: notes,
-                  departure: departure, stops: stops,
-                  startsmile: startsmile})
-
+        loop {
+            let status = inp.read(&mut byte)?;
+            if status == 0 {return Ok(None);}
+            ch = byte[0] as char; 
+            match ch {
+                '>' => {return Ok(Some(Self {name: name, number: number, 
+                                             speed: speed, 
+                                             classnumber: classnumber, 
+                                             notes: notes, 
+                                             departure: departure, 
+                                             stops: stops, 
+                                             startsmile: startsmile}));},
+                ' '|'\t'|'\n' => {continue;},
+                _ => {return Err(Error::new(ErrorKind::Other,"Syntax error: missing '>'"));},
+            };
+        }
+    }
+    pub fn Write(&self,f: &mut BufWriter<File>) -> std::io::Result<()> {
+        write!(f,"<Train \"{}\" \"{}\" {} {} {} {:5.3} {} ",
+                self.name,self.number,self.speed,self.classnumber,
+                self.departure,self.startsmile,self.notes.len())?;
+        for n in self.notes.iter() {
+            write!(f, "{} ",n)?; 
+        }
+        writeln!(f,"{}",self.stops.len())?;
+        for s in self.stops.iter() {
+            s.Write(f)?;
+            writeln!(f,"")?;
+        }
+        write!(f, ">")
     }
 }
 
@@ -1055,7 +1048,7 @@ mod tests {
     #[test]
     fn Stop_SetCab () {
         let mut temp = Stop::new(0,StopFlagType::Origin);
-        temp.SetCab(Some(Cab::new(String::from("Cab A"),String::from("red"))));
+        temp.SetCab(Some(&Cab::new(String::from("Cab A"),String::from("red"))));
         assert_eq!(temp.TheCab(),
                     Some(Cab::new(String::from("Cab A"),String::from("red"))));
     }
@@ -1108,7 +1101,7 @@ mod tests {
     fn Stop_Display () {
         let mut temp = Stop::new(0,StopFlagType::Origin);
         temp.AddNote(5);
-        temp.SetCab(Some(Cab::new(String::from("Cab A"),String::from("red"))));
+        temp.SetCab(Some(&Cab::new(String::from("Cab A"),String::from("red"))));
         temp.SetStorageTrackName(String::from("Track1"));
         temp.SetLayover(4.0);
         let output = format!("{}",temp);
@@ -1118,7 +1111,7 @@ mod tests {
     fn Stop_from_str () {
         let mut temp = Stop::new(0,StopFlagType::Origin);
         temp.AddNote(5);
-        temp.SetCab(Some(Cab::new(String::from("Cab A"),String::from("red"))));
+        temp.SetCab(Some(&Cab::new(String::from("Cab A"),String::from("red"))));
         temp.SetStorageTrackName(String::from("Track1"));
         temp.SetLayover(4.0);
         let other = Stop::from_str("<Stop Origin 4.000 \"Track1\" 0 Some(<Cab \"Cab A\" \"red\">) 1 5>")
@@ -1228,7 +1221,7 @@ mod tests {
     fn Train_UpdateStopCab () {
         let mut temp = Train::new(String::from("The Calif. Zepher"),
                                 String::from("5"),80,1,9*60,100.0,10,0);
-        temp.UpdateStopCab(1,Some(Cab::new(String::from("Cab1"),String::from("orange"))));
+        temp.UpdateStopCab(1,Some(&Cab::new(String::from("Cab1"),String::from("orange"))));
         let stop = temp.StopI(1).unwrap();
         assert_eq!(stop.TheCab(),Some(Cab::new(String::from("Cab1"),String::from("orange"))));
     }
