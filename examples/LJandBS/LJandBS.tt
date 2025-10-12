@@ -176,7 +176,7 @@ LJandBS
 %"
 "AMPMFormat" "a"
 "Group,1,SectionTOP" "%
-\\includegraphics{amtraklogo.jpg}
+\\includegraphics{amtraklogo.jpg} \\\\
 %"
 "UseMultipleTables" "true"
 "Group,2,ClassHeader" "Intermodal Trains"
