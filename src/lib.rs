@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251012.0930>
+//  Last Modified : <251012.1538>
 //
 //  Description	
 //
@@ -1979,11 +1979,163 @@ impl TimeTableSystem {
         writeln!(fp,"")?;
         Ok(())
     }
+    /**********************************************************************
+     * Make a table with the stations listed in the center. Traffic is    *
+     * bidirectional, with forward traveling trains on the left and       *
+     * reverse traveling trains on the right.                             *
+     **********************************************************************/
     fn MakeTimeTableOneTableStationsCenter(&self,fp: &mut BufWriter<File>,
                                            forwardTrains: &TrainList,
                                            backwardsTrains: &TrainList, 
                                            header: &str,sectionTOP: &str) 
                                             -> Result<(),CreateLaTeXError> {
+
+        // Reverse direction.
+        let rev = match self.direction_name.as_str() {
+            "Northbound" => "Southbound",
+            "Southbound" => "Northbound",
+            "Eastbound" => "Westbound",
+            "Westbound" => "Eastbound",
+            _ => "",
+        };
+        // Time cell matrixes 
+        let mut timesAtStationsForward: TrainTimesAtStation = HashMap::new();
+        let mut timesAtStationsBackward: TrainTimesAtStation = HashMap::new();
+        self.ComputeTimes(forwardTrains,&mut timesAtStationsForward);
+        self.ComputeTimes(backwardsTrains,&mut timesAtStationsBackward);
+        // Numbers of trains.
+        let nFtrains = forwardTrains.len();
+        let nBtrains = backwardsTrains.len();
+
+        // Start on a fresh page.  
+        writeln!(fp,"{}clearpage",Self::BACKSLASH)?;
+        // Output section header.
+        writeln!(fp,"{}section*{{{}}}",Self::BACKSLASH,header)?;
+        // Include TOC information.
+        if self.table_of_contents_p {
+            writeln!(fp,"{}addcontentsline{{toc}}{{section}}{{{}}}",Self::BACKSLASH,header)?;
+            for train in forwardTrains.iter() {
+                writeln!(fp,"{}addcontentsline{{toc}}{{subsection}}{{{}}}",Self::BACKSLASH,train.Number())?;
+            }
+            for train in backwardsTrains.iter() {
+                writeln!(fp,"{}addcontentsline{{toc}}{{subsection}}{{{}}}",Self::BACKSLASH,train.Number())?;
+            }
+        }
+        // Output user content.
+        writeln!(fp,"{}",sectionTOP)?;
+        // The table will be generated as a supertabular environment.
+        write!(fp,"\n{}begin{{supertabular}}{{|",Self::BACKSLASH)?;
+        for itr in 0..nFtrains {write!(fp,"r|")?;}
+        write!(fp,"|r|p{{{}stationwidth}}|",Self::BACKSLASH)?;
+        for itr in 0..nBtrains {write!(fp,"r|")?;}
+        writeln!(fp,"}}")?;
+        writeln!(fp,"{}hline",Self::BACKSLASH)?;
+        // Column headings.
+        for train in forwardTrains.iter() {
+            let number = train.Number();
+            let name   = train.Name();
+            let classnumer = train.ClassNumber();
+            write!(fp,"&{}parbox{{{}timecolumnwidth}}{{{}{}{}{}{}{}{}}}",
+                    Self::BACKSLASH,Self::BACKSLASH,number,
+                    Self::BACKSLASH,Self::BACKSLASH,name,
+                    Self::BACKSLASH,Self::BACKSLASH,classnumer)?;
+        }
+        write!(fp,"&{}parbox{{{}timecolumnwidth}}{{Train number:{}{}name:{}{}class:}}",
+                Self::BACKSLASH,Self::BACKSLASH,
+                Self::BACKSLASH,Self::BACKSLASH,
+                Self::BACKSLASH,Self::BACKSLASH)?;
+        for train in backwardsTrains.iter() {
+            let number = train.Number();
+            let name   = train.Name();
+            let classnumer = train.ClassNumber();
+            write!(fp,"&{}parbox{{{}timecolumnwidth}}{{{}{}{}{}{}{}{}}}",
+                    Self::BACKSLASH,Self::BACKSLASH,number,
+                    Self::BACKSLASH,Self::BACKSLASH,name,
+                    Self::BACKSLASH,Self::BACKSLASH,classnumer)?;
+        }
+        writeln!(fp,"{}{}",Self::BACKSLASH,Self::BACKSLASH)?;
+        writeln!(fp,"{}hline",Self::BACKSLASH)?;
+        for train in forwardTrains.iter() {
+            write!(fp,"&{}parbox{{{}timecolumnwidth}}{{",
+                    Self::BACKSLASH,Self::BACKSLASH)?;
+            let numnotes = train.NumberOfNotes();
+            for inote in 0..numnotes {
+                write!(fp,"{} ",train.Note(inote).unwrap())?;
+            }
+            write!(fp,"}}")?;
+        }
+        write!(fp,"&Notes:")?;
+        for train in backwardsTrains.iter() {
+            write!(fp,"&{}parbox{{{}timecolumnwidth}}{{",
+                    Self::BACKSLASH,Self::BACKSLASH)?;
+            let numnotes = train.NumberOfNotes();
+            for inote in 0..numnotes {
+                write!(fp,"{} ",train.Note(inote).unwrap())?;
+            }
+            write!(fp,"}}")?;
+        }
+        writeln!(fp,"{}{}",Self::BACKSLASH,Self::BACKSLASH)?;
+        writeln!(fp,"{}hline",Self::BACKSLASH)?;
+        // Third line of column headings.
+        writeln!(fp,"{}multicolumn{{{}}}{{|c|}}{{{}  (Read Down)}}&Mile&Station&{}multicolumn{{{}}}{{|c|}}{{{} (Read up)}}{}{}",
+                 Self::BACKSLASH,nFtrains,self.direction_name,
+                 Self::BACKSLASH,nBtrains,rev,
+                 Self::BACKSLASH,Self::BACKSLASH)?;
+        writeln!(fp,"{}hline",Self::BACKSLASH)?;
+        writeln!(fp,"{}hline",Self::BACKSLASH)?;
+        let numstations = self.NumberOfStations();
+        // Output 3 rows for each station (even ones where no trains stop). 
+        for istation in 0..numstations {
+            // Three rows per station:
+            //    | train arrivals/tracks | AR station name LV | train departs/tracks  |
+            //    | train cabs+notes      |    scale mile      | train cabs+notes      |
+            //    | train departs/tracks  | LV              AR | train arrivals/tracks |
+            let tasF = timesAtStationsForward.get(&istation);
+            let tasB = timesAtStationsBackward.get(&istation);
+            if tasF.is_none() && tasB.is_none() {continue;}
+            let station = self.IthStation(istation).unwrap();
+            let smile = station.SMile();
+            for train in forwardTrains.iter() {
+                match tasF.unwrap().get(&train.Number()) {
+                    Some(st) => {
+                        if st.Flag() != StopFlagType::Origin {
+                            write!(fp,"{}shtime{{{}}}",Self::BACKSLASH,
+                                    (st.Arrival()+0.5) as u32)?;
+                        } else {
+                            let origStop = train.StopI(0).unwrap();
+                            let strack = origStop.StorageTrackName();
+                            if strack.len() > 0 {write!(fp,"Tr {}",strack)?;}
+                        }
+                    },
+                    None => {write!(fp,"&")?;},
+                };
+                
+            }
+            // Center (station name).
+            write!(fp,"&AR{}hfill{}parbox[t]{{{}stationwidthtwoar}}{{{}}}{}hfill LV",
+                      Self::BACKSLASH,Self::BACKSLASH,Self::BACKSLASH,
+                      station.Name(),Self::BACKSLASH)?;
+            // Right side (backward trains).
+            for train in backwardsTrains.iter() {
+                match tasB.unwrap().get(&train.Number()) {
+                    Some(st) => {
+                        if st.Flag() != StopFlagType::Terminate {
+                            write!(fp,"{}shtime{{{}}}",Self::BACKSLASH,
+                                    (st.Departure()+0.5) as u32)?;
+                        } else {
+                            let origStop = train.StopI(train.NumberOfStops()-1).unwrap();
+                            let strack = origStop.StorageTrackName();
+                            if strack.len() > 0 {write!(fp,"Tr {}",strack)?;}
+                        }
+                    },
+                    None => {write!(fp,"&")?;},
+                };
+                
+            }
+            writeln!(fp,"{}{}",Self::BACKSLASH,Self::BACKSLASH)?;
+            // Second row: cabs and notes + scale miles.
+            
+        }
         Ok(())
     }
     /**********************************************************************
@@ -2138,14 +2290,14 @@ mod tests {
     }
 
     //#[test]
-    fn TimeTableSystem_old () {
-        let temp = TimeTableSystem::old("examples/LJandBS.tt")
-                    .expect("Failed");
-    }
+    //fn TimeTableSystem_old () {
+    //    let temp = TimeTableSystem::old("examples/LJandBS.tt")
+    //                .expect("Failed");
+    //}
     //#[test]
-    fn TimeTableSystem_CreateLaTeXTimetable () {
-        let mut temp = TimeTableSystem::old("examples/LJandBS.tt")
-                    .expect("Failed");
-        temp.CreateLaTeXTimetable("examples/LJandBS.tex").expect("Failed");
-    }
+    //fn TimeTableSystem_CreateLaTeXTimetable () {
+    //    let mut temp = TimeTableSystem::old("examples/LJandBS.tt")
+    //                .expect("Failed");
+    //    temp.CreateLaTeXTimetable("examples/LJandBS.tex").expect("Failed");
+    //}
 }
