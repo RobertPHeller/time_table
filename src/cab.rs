@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:19
-//  Last Modified : <251011.1009>
+//  Last Modified : <251012.2031>
 //
 //  Description	
 //
@@ -47,7 +47,7 @@
 use std::fmt;
 use std::str::FromStr;
 use std::collections::HashMap;
-use std::io::{BufReader,Read};
+use std::io::{BufReader,Read,BufWriter,Write};
 use std::fs::File;
 use std::io::{Error, ErrorKind};
 use crate::primio::*;
@@ -154,6 +154,9 @@ impl Cab {
             Some((n, m)) => pos += n + m.len(),
         };
         Ok((Cab::new(name,color),pos))
+    }
+    pub fn Write(&self,f: &mut BufWriter<File>) -> std::io::Result<()> {
+        write!(f,"<Cab \"{}\" \"{}\">",self.name,self.color)
     }
     pub fn Read(inp: &mut BufReader<File>) -> std::io::Result<Option<Self>> {
         let mut ch: char;

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251012.1711>
+//  Last Modified : <251012.2109>
 //
 //  Description	
 //
@@ -57,6 +57,9 @@ use crate::cab::*;
 use crate::train::*;
 use crate::primio::*;
 use std::collections::HashMap;
+//use std::collections::hash_map::Iter;
+//use std::collections::btree_map::Iter;
+//use std::slice::Iter;
 use std::collections::LinkedList;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -1347,11 +1350,11 @@ impl TimeTableSystem {
         writeln!(fp,"{} {}",self.timescale,self.timeinterval)?;
         writeln!(fp,"{}",self.stations.len())?;
         for s in self.stations.iter() {
-            writeln!(fp,"{}",s)?;
+            s.Write(&mut fp)?;
         }
         writeln!(fp,"{}",self.cabs.len())?;
         for c in self.cabs.values() {
-            writeln!(fp,"{}",c)?;
+            c.Write(&mut fp)?;
         }
         writeln!(fp,"{}",self.trains.len())?;
         for t in self.trains.values() {
@@ -1386,6 +1389,36 @@ impl TimeTableSystem {
     /** @brief Return file pathname.
       */
     pub fn Filename(&self) -> String {self.filepath.display().to_string()}
+    pub fn StationsIter(&self) -> std::slice::Iter<'_, Station> {
+        self.stations.iter()
+    }
+    pub fn StationsIter_mut(&mut self) -> std::slice::IterMut<'_, Station> {
+        self.stations.iter_mut()
+    }
+    pub fn CabsIter(&self) -> std::collections::hash_map::Iter<'_, String, Cab> {
+        self.cabs.iter()
+    }
+    pub fn CabsIter_mut(&mut self) -> std::collections::hash_map::IterMut<'_, String, Cab> {
+        self.cabs.iter_mut()
+    }
+    pub fn TrainsIter(&self) -> std::collections::hash_map::Iter<'_, String, Train> {
+        self.trains.iter()
+    }
+    pub fn TrainsIter_mut(&mut self) -> std::collections::hash_map::IterMut<'_, String, Train> {
+        self.trains.iter_mut()
+    }
+    pub fn NotesIter(&self) -> std::slice::Iter<'_, String> {
+        self.notes.iter()
+    }
+    pub fn NotesIter_mut(&mut self) -> std::slice::IterMut<'_, String> {
+        self.notes.iter_mut()
+    }
+    pub fn PrintOptionsIter(&self) -> std::collections::hash_map::Iter<'_, String, String> {
+        self.print_options.iter()
+    }
+    pub fn PrintOptionsIter_mut(&mut self) -> std::collections::hash_map::IterMut<'_, String, String> {
+        self.print_options.iter_mut()
+    }
     /*
      * Common LaTeX characters.
      */

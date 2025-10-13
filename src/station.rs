@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:04
-//  Last Modified : <251011.2225>
+//  Last Modified : <251012.2028>
 //
 //  Description	
 //
@@ -57,7 +57,7 @@ use std::str::FromStr;
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::collections::btree_map::*;
-use std::io::{BufReader,Read};
+use std::io::{BufReader,Read,BufWriter,Write};
 use std::fs::File;
 use std::io::{Error, ErrorKind};
 use crate::primio::*;
@@ -190,6 +190,10 @@ impl Occupied {
         };
         Ok((Self{ trainnum: trainnum, from: from, until: until, 
                   trainnum2: trainnum2}, pos))
+    }
+    pub fn Write(&self,f: &mut BufWriter<File>) -> std::io::Result<()> {
+        write!(f,"<Occupied \"{}\" {:5.3}:{:5.3} \"{}\">",
+            self.trainnum,self.from,self.until,self.trainnum2)
     }
     pub fn Read(inp: &mut BufReader<File>) -> std::io::Result<Option<Self>> {
         let mut ch: char;
@@ -383,6 +387,9 @@ impl TimeRange {
             
         };
         Ok((Self { from: from, to: to }, pos))
+    }
+    pub fn Write(&self,f: &mut BufWriter<File>) -> std::io::Result<()> {
+        write!(f,"<TimeRange {:5.3}:{:5.3}>",self.from,self.to)
     }
 }
 
@@ -697,6 +704,15 @@ impl StorageTrack {
     /// Mutable occupations iterator
     pub fn  occupations_mut(&mut self) -> ValuesMut<'_, TimeRange, Occupied> {
         self.occupations.values_mut()
+    }
+    pub fn Write(&self,f: &mut BufWriter<File>) -> std::io::Result<()> {
+        writeln!(f,"<StorageTrack \"{}\" {} ",self.name,self.occupations.len())?;
+        for (tr,occ) in self.occupations.iter() {
+            tr.Write(f)?;
+            write!(f," ")?;
+            occ.Write(f)?;
+        }
+        write!(f,">")
     }
     pub fn Read(inp: &mut BufReader<File>) -> std::io::Result<Option<Self>> {
         let mut ch: char;
@@ -1058,6 +1074,18 @@ impl Station {
         }
                 
         Ok((result,pos))
+    }
+    pub fn Write(&self,f: &mut BufWriter<File>) -> std::io::Result<()> {
+        write!(f,"<Station \"{}\" {:5.3} ",self.name,self.smile)?;
+        match self.duplicateStationIndex {
+            None => {write!(f,"-1 ")?;},
+            Some(d) => {write!(f,"{} ",d)?;},
+        };
+        writeln!(f,"{} ",self.storageTracks.len())?;
+        for st in self.storageTracks.values() {
+            st.Write(f)?;
+        }
+        write!(f,">")
     }
     pub fn Read(inp: &mut BufReader<File>) -> std::io::Result<Option<Self>> {
         let mut ch: char;
