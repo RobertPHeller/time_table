@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-10 23:49:56
-//  Last Modified : <251011.1112>
+//  Last Modified : <251013.1124>
 //
 //  Description	
 //
@@ -38,10 +38,13 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+//! Primitive I/O -- Read functions for selected "primitive" types
+
 use std::io::{BufReader,Read};
 use std::fs::File;
 use std::io::{Error, ErrorKind};
 
+/// Read a quoted string
 pub fn ReadQuotedString(inp: &mut BufReader<File>) -> std::io::Result<Option<String>> {
     let mut buffer: [u8; 1] = [0; 1];
     loop {
@@ -79,12 +82,15 @@ pub fn ReadQuotedString(inp: &mut BufReader<File>) -> std::io::Result<Option<Str
     }       
 }
 
+/// Is the character a digit?
 fn IsDigit(ch: char) -> bool {
     match ch {
         '0'..='9' => true,
         _         => false,
     }
 }
+
+/// Is the character a alphabetical character
 fn IsAlpha(ch: char) -> bool {
     match ch {
         'a'..='z' => true,
@@ -93,7 +99,7 @@ fn IsAlpha(ch: char) -> bool {
     }
 }
 
-
+/// Read a f64
 pub fn ReadF64(inp: &mut BufReader<File>) -> std::io::Result<Option<f64>> {
     let mut buffer: [u8; 1] = [0; 1];
     let mut ch: char;
@@ -133,6 +139,7 @@ pub fn ReadF64(inp: &mut BufReader<File>) -> std::io::Result<Option<f64>> {
     Ok(Some(result))
 }
 
+/// Read an isize
 pub fn ReadISize(inp: &mut BufReader<File>) -> std::io::Result<Option<isize>> {
     let mut buffer: [u8; 1] = [0; 1];
     let mut ch: char;
@@ -169,6 +176,7 @@ pub fn ReadISize(inp: &mut BufReader<File>) -> std::io::Result<Option<isize>> {
     Ok(Some(result))
 }
 
+/// Read an usize
 pub fn ReadUSize(inp: &mut BufReader<File>) -> std::io::Result<Option<usize>> {
     let mut buffer: [u8; 1] = [0; 1];
     let mut ch: char;
@@ -205,6 +213,7 @@ pub fn ReadUSize(inp: &mut BufReader<File>) -> std::io::Result<Option<usize>> {
     Ok(Some(result))
 }
 
+/// Read an u32
 pub fn ReadU32(inp: &mut BufReader<File>) -> std::io::Result<Option<u32>> {
     let mut buffer: [u8; 1] = [0; 1];
     let mut ch: char;

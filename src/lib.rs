@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251012.2109>
+//  Last Modified : <251013.1254>
 //
 //  Description	
 //
@@ -39,13 +39,18 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //! ## Model Railroad Time Table generating program
-//! The Time Table  program is a port of the Time Table V2 program that is part of
+//! The Time Table library is a port of the Time Table V2 program that is part of
 //! the Model  Railroad  System.  That  program is partly in C++  (low-level  data
 //! structures) and part in Tcl/Tk (GUI main program).  This is mostly just a port
 //! of the C++ code. This  program  was  inspired by chapter 8 of the book _How to
 //! Operate Your Model Railroad_ by Bruce A. Chubb.  I strongly  recommend reading
 //! this chapter  fully before using this  program.  This program  implements  the
 //! methods described in this chapter, in an automated fashion. 
+//!
+//! The time tables this library creates are LaTeX source.  You will need to 
+//! install the LaTeX system to process the LaTeX source into a PDF file that
+//! can then be printed.
+
 
 pub mod station;
 pub mod cab;
@@ -69,35 +74,32 @@ use std::io::prelude::*;
 use std::io::{Write,BufReader,BufWriter};
 
 
-/**  @brief A Vector of doubles.
+/**   A Vector of doubles.
   * 
   * Used as a vector of layover times.
   *
-  * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 pub type DoubleVector = Vec<f64>;
 
-/** @brief Option hash map, used for Print options.
+/**  Option hash map, used for Print options.
   *
-  * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 
 pub type OptionHashMap = HashMap<String, String>;
 
 
-/** @brief List of trains.
+/**  List of trains.
   *
   * Simple linked list of trains, used for passing train lists
   * around. 
   *
-  * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 pub type TrainList<'latex> =  Vec<&'latex Train>;
 
-/** @brief Station times class, used by the LaTeX generator methods.
+/**  Station times class, used by the LaTeX generator methods.
   *
   * This class holds time table information used in the code that generates 
   * the LaTeX tables.  Each StationTimes item contains one table 
@@ -112,9 +114,6 @@ pub type TrainList<'latex> =  Vec<&'latex Train>;
   * specific station and each column contains the information for a single
   * train.
   *
-  * @sa TrainStationTimes TrainTimesAtStation.
-  *
-  * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -133,9 +132,10 @@ impl Default for StationTimes {
 
 impl StationTimes {
     /** Constructor: create an entry for a time table cell.
-      *   @param a The arrival time.
-      *   @param d The departure time.
-      *   @param f The stop flag: Origin, Terminate, or Transit.
+      * ## Parameters:
+      * - a The arrival time.
+      * - d The departure time.
+      * - f The stop flag: Origin, Terminate, or Transit.
       */
     pub fn new(a: f64, d: f64, f: StopFlagType) -> Self {
         Self {arrival: a, departure: d, flag: f }
@@ -152,7 +152,7 @@ impl StationTimes {
 
 }
 
-/** @brief Map of station times, indexed by train number.
+/**  Map of station times, indexed by train number.
   *
   * These are the individual
   * rows of the time table. The train number (symbol) is the column index.
@@ -160,41 +160,38 @@ impl StationTimes {
   * not all trains stop at (or go past) all stations.  The ommited elements
   * result in blank cells in the output table.
   *
-  * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 pub type TrainStationTimes = HashMap<String,StationTimes>;
 
-/** @brief Map of maps of station times, indexed by station index.
+/**  Map of maps of station times, indexed by station index.
   *
   * This is the whole
   * time table.  The station index is the row index.  This is a sparse vector,
   * since not all trains stop at (or go past) all stations.  The ommited
   * elements result in blank cells in the output table.
   *
-  * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 pub type TrainTimesAtStation = HashMap<usize, TrainStationTimes>;
 
-/** @brief List of strings.
+/**  List of strings.
   *
   * This is a simple linked list of strings, used in various places.
   *
-  * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 pub type StringList =  LinkedList<String>;
 
-/** @brief Convert a list of strings to a flat string.
+/**  Convert a list of strings to a flat string.
   *
   * The result is comma
   * separated and each string is enclosed in quote characters 
-  * (@c ").  If a string contains a quote character or a
+  * (__"__).  If a string contains a quote character or a
   * backslash, the character is quoted with a backslash.
-  *   @param list The list of strings.
+  * ## Parameters:
+  * - list The list of strings.
   *
-  * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 pub fn StringListToString(list: StringList) -> String {
@@ -213,13 +210,13 @@ pub fn StringListToString(list: StringList) -> String {
     result
 }
 
-/** @brief Convert a flat string to a list of strings.
+/**  Convert a flat string to a list of strings.
   *
   * Returns false if there was a syntax error.
-  *    @param strlinList The input string.
-  *    @param result The output list.
+  * ## Parameters:
+  * - strlinList The input string.
+  * - result The output list.
   *
-  * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 pub fn StringListFromString(strlinList: String) -> Option<StringList> {
@@ -268,7 +265,7 @@ pub fn StringListFromString(strlinList: String) -> Option<StringList> {
     }
 }
 
-/** @brief This is the main Time Table Class.
+/**  This is the main Time Table Class.
   *
   * It implements all of the basic data
   * and algorithms used in the Time Table program.
@@ -278,7 +275,6 @@ pub fn StringListFromString(strlinList: String) -> Option<StringList> {
   * file and code to create a formatted time table, suitable for printing (by
   * way of LaTeX).
   *
-  * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 
@@ -355,14 +351,13 @@ pub enum GroupMode {
     Class,
 }
 impl TimeTableSystem {
-    /** @brief The constructor that creates a time table system from an existing
+    /**  The constructor that creates a time table system from an existing
       * file.
       *
       * The file is read in and the class is properly initialized 
       * from the data in the file.
-      *   @param filename The name of the file to load.
-      *   @param outmessage Pointer to a pointer to receive any error 
-      *     messages for any errors that might occur.
+      * ## Parameters:
+      * - filename The name of the file to load.
       */
     pub fn old(filename: &str) -> Result<Self, ConstructorError> {
         let filepath: PathBuf = match PathBuf::from_str(filename) {
@@ -473,13 +468,13 @@ impl TimeTableSystem {
         }
         Ok(this)
     }
-    /** @brief The constructor that creates a new, empty time table system from
+    /**  The constructor that creates a new, empty time table system from
       * stratch, given a set of esentual parameters.
-      *
-      *  @param name The name of the time table system.
-      *  @param timescale Number of time units per 24 hours.  There are
+      * ## Parameters:
+      *  - name The name of the time table system.
+      *  - timescale Number of time units per 24 hours.  There are
       *    1440 minutes in 24 hours.
-      *  @param timeinterval The tick frequency in time units.
+      *  - timeinterval The tick frequency in time units.
       */
     pub fn new(name: String,timescale: u32,timeinterval: u32) -> Self {
         Self {name: name, filepath: PathBuf::new(), timescale: timescale, 
@@ -488,15 +483,15 @@ impl TimeTableSystem {
               print_options: HashMap::new(), table_of_contents_p: true, 
               direction_name: String::new() }
     }
-    /** @brief Add a new station to the system.
+    /**  Add a new station to the system.
       *
       * Creates a new Station class
       * instance and adds it to the station vector.  Stations must be
       * added in order of their scale mile location.  If the new station
       * is out of order, -1 is returned and the station is not added!
-      *
-      *  @param name The name of the station.
-      *  @param smile The scale mile along the route where the station is
+      * ## Parameters:
+      *  - name The name of the station.
+      *  - smile The scale mile along the route where the station is
       *    located.
       */
     pub fn AddStation(&mut self,name: String,smile: f64) -> Option<usize> {
@@ -517,11 +512,12 @@ impl TimeTableSystem {
             Some(index) => Some(index),
         }                        
     }
-    /** @brief Find a station by name.
+    /**  Find a station by name.
       *
       * Returns the index of the station or -1 if
       * the station cannot be found.
-      * @param name The name of the station.
+      * ## Parameters:
+      * - name The name of the station.
      */
     pub fn FindStationByName(&self,name: String) -> Option<usize> {
         for i in 0..self.stations.len() {
@@ -531,16 +527,17 @@ impl TimeTableSystem {
         }
         None
     }
-    /** @brief Number of stations. 
+    /**  Number of stations. 
       * 
       * Returns the number of stations in the system.
       */
     pub fn NumberOfStations(&self) -> usize {self.stations.len()}
-    /** @brief Return Ith station object.
+    /**  Return Ith station object.
       *
       * Returns the NULL pointer if the index
       * is out of range.
-      *   @param i The index of the station.
+      * ## Parameters:
+      * - i The index of the station.
       */
     pub fn IthStation(&self, i: usize) -> Option<&Station> {
         self.stations.get(i)
@@ -548,11 +545,12 @@ impl TimeTableSystem {
     pub fn IthStationMut(&mut self, i: usize) -> Option<&mut Station> {
         self.stations.get_mut(i)
     }
-    /** @brief Return the Ith station name. 
+    /**  Return the Ith station name. 
       *
       * Returns the NULL pointer if the index
       * is out of range.
-      *    @param i The index of the station.
+      * ## Parameters:
+      * - i The index of the station.
       */
     pub fn StationName(&self,i: usize) -> Option<String> {
         match self.stations.get(i) {
@@ -560,11 +558,12 @@ impl TimeTableSystem {
             Some(s) => Some(s.Name())
         }
     }
-    /** @brief Return the Ith station's scale mile location.
+    /**  Return the Ith station's scale mile location.
       *
       * Returns -1.0 if
       * the index is out of range.
-      *    @param i The index of the station.
+      * ## Parameters:
+      * - i The index of the station.
       */
     pub fn SMile(&self,i: usize) -> Option<f64> {
         match self.stations.get(i) {
@@ -572,7 +571,7 @@ impl TimeTableSystem {
             Some(s) => Some(s.SMile()),
         }
     }
-    /** @brief The total length of the route in scale miles.  
+    /**  The total length of the route in scale miles.  
       * 
       * This is just the
       * scale mile location of the last station along the route.
@@ -584,14 +583,15 @@ impl TimeTableSystem {
             self.stations.last().unwrap().SMile()
         }
     }
-    /** @brief The duplicate station index for a given station.  
+    /**  The duplicate station index for a given station.  
       * 
       * Only meaningful
       * for out and back type layouts or layouts that have shared trackage.
       * This would be stations along shared trackage.  Returns -1 if
       * the index is out of range or if there is not a duplicate station for
       * the ith station.
-      *    @param i The index of the station.
+      * ## Parameters:
+      * - i The index of the station.
       */
     pub fn DuplicateStationIndex(&self,i: usize) -> Option<usize> {
         match self.stations.get(i) {
@@ -599,15 +599,16 @@ impl TimeTableSystem {
             Some(s) => s.DuplicateStationIndex(),
         }
     }
-    /** @brief Set the duplicate station index for a given station.
+    /**  Set the duplicate station index for a given station.
       *
       * Only 
       * meaningful for out and back type layouts or layouts that have 
       * shared trackage. This would be stations along shared trackage.
       * setting the duplicate station index indicates there is no
       * duplicate station
-      *    @param i The index of the station to be updated.
-      *    @param dup The other station index sharing this station 
+      * ## Parameters:
+      * - i The index of the station to be updated.
+      * - dup The other station index sharing this station 
       *      location.
       */
     pub fn SetDuplicateStationIndex(&mut self,i: usize,dup: usize) {
@@ -616,15 +617,16 @@ impl TimeTableSystem {
             Some(s) => s.SetDuplicateStationIndex(Some(dup)),
         };
     }
-    /** @brief Add a storage track to a station.  
+    /**  Add a storage track to a station.  
       *
       * Sometimes stations, especially
       * major terminals, have extra tracks for storing terminating and
       * originating trains.  Returns the NULL pointer if the index is
       * out of range.  Otherwise returns the pointer to the new 
       * StorageTrack object.
-      *    @param i The index of the station to be updated.
-      *    @param name The name for the new storage track.
+      * ## Parameters:
+      * - i The index of the station to be updated.
+      * - name The name for the new storage track.
       */
     pub fn AddStorageTrack(&mut self,i: usize,name: &String) -> Option<&mut StorageTrack> {
         match self.stations.get_mut(i) {
@@ -632,15 +634,16 @@ impl TimeTableSystem {
             Some(s) => s.AddStorageTrack(name)
         }
     }
-    /** @brief Find a storage track at a station.
+    /**  Find a storage track at a station.
       *
       * Sometimes stations, especially
       * major terminals, have extra tracks for storing terminating and
       * originating trains. Returns the NULL pointer if the index is
       * out of range or if there is no storage track with the specified
       * name.  Otherwise the StorageTrack object pointer is returned.
-      *    @param i The index of the station to be updated.
-      *    @param name The name of the storage track.
+      * ## Parameters:
+      * - i The index of the station to be updated.
+      * - name The name of the storage track.
       */
     pub fn FindStorageTrack(&self,i: usize,name: &String) -> Option<&StorageTrack> {
         match self.stations.get(i) {
@@ -654,45 +657,48 @@ impl TimeTableSystem {
             Some(s) => s.FindStorageTrack_mut(name),
         }
     }
-    /** @brief Add a new cab to the system.
+    /**  Add a new cab to the system.
       *
       * With DC systems this would be an
       * actual cab.  With DCC systems, this can be used to define a
       * logical operator for the train.  The color is used for visual
       * distintion.  A pointer to the new cab object is returned.
-      *   @param name The name of the cab.
-      *   @param color The color of the cab.
+      * ## Parameters:
+      * - name The name of the cab.
+      * - color The color of the cab.
       */
     pub fn AddCab(&mut self,name: String,color: String) -> &Cab {
         self.cabs.entry(name.clone()).or_insert(Cab::new(name.clone(),color))
     }
-    /** @brief Find a cab (by name).  
+    /**  Find a cab (by name).  
       *
       * Returns the pointer to the named cab or NULL
       * if the cab was not found.
-      *   @param name The cab name to look for.
+      * ## Parameters:
+      * - name The cab name to look for.
       */
     pub fn FindCab(&self,name: &String) -> Option<&Cab> {
         self.cabs.get(name)
     }
-    /** @brief The nymber of cabs.
+    /**  The nymber of cabs.
       */
     pub fn NumberOfCabs(&self) -> usize {self.cabs.len()}
-    /** @brief Add a train to the system, short version.  
+    /**  Add a train to the system, short version.  
       *
       * Creates a new Train
       * opject and adds it to the train map.  The short version assumes
       * that the train does not layover at any of the stops.  Layover
       * times can be added later.  Returns a pointer to the new Train
       * object.
-      *   @param name The name of the train.
-      *   @param number The number (or symbol) of the train.
-      *   @param speed The trains maximum speed.
-      *   @param classnumber The class (inverse priority) of the train.
-      *   @param departure The train's departure time.
-      *   @param start The train's origin station index.  Defaults to the
+      * ## Parameters:
+      * - name The name of the train.
+      * - number The number (or symbol) of the train.
+      * - speed The trains maximum speed.
+      * - classnumber The class (inverse priority) of the train.
+      * - departure The train's departure time.
+      * - start The train's origin station index.  Defaults to the
       *    first station.
-      *   @param end The train's destination station index. Defaults to
+      * - end The train's destination station index. Defaults to
       *    the last station.
       */
     pub fn AddTrain(&mut self,name: String,number: String,speed: u32, 
@@ -713,25 +719,24 @@ impl TimeTableSystem {
             Ok(self.trains.entry(number).or_insert(newTrain))
         }
     }
-    /** @brief Add a train to the system, long version (includes storage track
+    /**  Add a train to the system, long version (includes storage track
       * checking).  
       *
       * This version includes layover times, cabnames, and
       * storage track assignments.  Returns a pointer to the new Train
       * object or the NULL pointer if there was an error, in which case
       * the error message will be stored in the pointer provided.
-      *  @param name The name of the train.
-      *  @param number The number (or symbol) of the train.
-      *  @param speed The trains maximum speed.
-      *  @param classnumber The class (inverse priority) of the train.
-      *  @param departure The train's departure time.
-      *  @param start The train's origin station index.
-      *  @param end The train's destination station index.
-      *  @param layoverVector The train's layover vector.
-      *  @param cabnameVector The train's departure cab name vector.
-      *  @param storageTrackVector The train's storage track name vector.
-      *  @param outmessage Pointer to a pointer to receive any error 
-      *    messages for any errors that might occur.
+      * ## Parameters:
+      * - name The name of the train.
+      * - number The number (or symbol) of the train.
+      * - speed The trains maximum speed.
+      * - classnumber The class (inverse priority) of the train.
+      * - departure The train's departure time.
+      * - start The train's origin station index.
+      * - end The train's destination station index.
+      * - layoverVector The train's layover vector.
+      * - cabnameVector The train's departure cab name vector.
+      * - storageTrackVector The train's storage track name vector.
       */
     pub fn AddTrainLongVersion(&mut self,name: String,number: String,
                                speed: u32,classnumber: u32,departure: u32,
@@ -1057,14 +1062,13 @@ impl TimeTableSystem {
         }
     }
     /**
-      * @brief Delete a train.  
+      *  Delete a train.  
       *
       * Returns true if the train was successfully deleted
       * and false if not.  If the train was not deleted, an error message
       * will be provided in the pointer provided.
-      *  @param number The train number or symbol.
-      *  @param outmessage Pointer to a pointer to receive any error messages
-      *      for any errors that might occur.
+      * ## Parameters:
+      * - number The train number or symbol.
       */
     pub fn DeleteTrain(&mut self,number: String) -> Result<(),DeleteTrainError> {
         match self.trains.get_mut(&number) {
@@ -1250,11 +1254,12 @@ impl TimeTableSystem {
             }
         }
     }
-    /** @brief Find a train by name.
+    /**  Find a train by name.
       *
       * Returns the pointer to the named train or
       * NULL if the train was not found.
-      *   @param name The train name to look for.
+      * ## Parameters:
+      * - name The train name to look for.
       */
     pub fn FindTrainByName(&self,name: &String) -> Option<&Train> {
         for train in self.trains.values() {
@@ -1264,43 +1269,47 @@ impl TimeTableSystem {
         }
         None
     }
-    /** @brief Find a train by number (or symbol). 
+    /**  Find a train by number (or symbol). 
       *
       * Returns the pointer to the 
       * train or NULL if the train was not found.
-      *   @param number The train number (or symbol) to look for.
+      * ## Parameters:
+      * - number The train number (or symbol) to look for.
       */
     pub fn FindTrainByNumber(&self, number: &String) -> Option<&Train> {
         self.trains.get(number)
     }
-    /** @brief Return the number of trains.
+    /**  Return the number of trains.
       */
     pub fn NumberOfTrains(&self) -> usize {self.trains.len()}
-    /** @brief Return the number of notes.
+    /**  Return the number of notes.
       */
     pub fn NumberOfNotes(&self)  -> usize {self.notes.len()}
-    /** @brief Return the ith note (1-based!) as a string. , 
+    /**  Return the ith note (1-based!) as a string. , 
       * Returns the NULL
       * pointer if the index is out of range.
-      *   @param i The note index.  The first note is at index 1, not 0!.
+      * ## Parameters:
+      * - i The note index.  The first note is at index 1, not 0!.
       */
     pub fn Note(&self,i: usize) -> Option<String> {
         self.notes.get(i).cloned()
     }
-    /** @brief Add a note to the notes vector.
-      *   @param newnote The text of the new note.
+    /**  Add a note to the notes vector.
+      * ## Parameters:
+      * - newnote The text of the new note.
       */
     pub fn AddNote(&mut self,newnote: String) -> usize {
         self.notes.push(newnote);
         self.notes.len()
     }
-    /** @brief Set the ith note (1-based!).  
+    /**  Set the ith note (1-based!).  
       *
       * Updates the text of the specificed
       * note.  Returns true if the note was updated or false if the
       * index was out of range.
-      *   @param i The note index.  The first note is at index 1, not 0!.
-      *   @param note The new text for the note.
+      * ## Parameters:
+      * - i The note index.  The first note is at index 1, not 0!.
+      * - note The new text for the note.
       */
     pub fn  SetNote(&mut self,i: usize,note: String) -> bool {
         if i == 0 || i > self.notes.len() {
@@ -1310,37 +1319,39 @@ impl TimeTableSystem {
             true
         }
     }
-    /** @brief Fetch a print option.  
+    /**  Fetch a print option.  
       *
       * Returns the value of a specified print
       * option or the empty string if the print option was not found.
-      *   @param key The name of the print option.
+      * ## Parameters:
+      * - key The name of the print option.
       */
     pub fn GetPrintOption(&self,key: &str) -> Option<&String>
     {
         self.print_options.get(key)
     }
-    /** @brief Set a print option.  
+    /**  Set a print option.  
       *
       * Sets the value of a print option.  Creates a
       * new hash table element if the specified print option does not
       * already exist.
-      *  @param key The name of the print option to be set.
-      *  @param value The value to set the print option to.
+      * ## Parameters:
+      * - key The name of the print option to be set.
+      * - value The value to set the print option to.
       */
     pub fn SetPrintOption(&mut self,key: &str,value: &str) {
         self.print_options.insert(key.to_string(),value.to_string());
     }
-    /** @brief Write out a Time Table System to a new file.  
+    /**  Write out a Time Table System to a new file.  
       *
       * The current contents
       * of the time table is written to a new time table file. Returns 
       * true if successful and false if not.
-      *  @param filename The name of the file to write (if empty, use
+      * ## Parameters:
+      * - filename The name of the file to write (if empty, use
       *    existing name, if available).
-      *  @param setfilename Change the filename if true.
-      *  @param outmessage Pointer to a pointer to receive any error
-      *    messages for any errors that might occur.
+      * - setfilename Change the filename if true.
+      * 
       */
     pub fn WriteNewTimeTableFile(&mut self,filename: &String, 
                                  setfilename: bool) -> std::io::Result<()> {
@@ -1377,16 +1388,16 @@ impl TimeTableSystem {
         }
         Ok(())
     }
-    /** @brief Return time scale.
+    /**  Return time scale.
       */
     pub fn TimeScale(&self) -> u32 {self.timescale}
-    /** @brief Return time interval.
+    /**  Return time interval.
       */
     pub fn TimeInterval(&self) -> u32 {self.timeinterval}
-    /** @brief Return the name of the system.
+    /**  Return the name of the system.
       */
     pub fn Name(&self) -> String {self.name.clone()}
-    /** @brief Return file pathname.
+    /**  Return file pathname.
       */
     pub fn Filename(&self) -> String {self.filepath.display().to_string()}
     pub fn StationsIter(&self) -> std::slice::Iter<'_, Station> {
@@ -1425,15 +1436,14 @@ impl TimeTableSystem {
     const BACKSLASH: char = '\\';
     const OPENBRACE: char = '{';
     const CLOSEBRACE: char = '}';
-    /** @brief Create a LaTeX file for generating a (hard copy) Employee
+    /**  Create a LaTeX file for generating a (hard copy) Employee
       * Timetable. 
       *
       * This method create a LaTeX source file from
       * the information in the time table structure.  It access various
       * print options to control how the LaTeX file is generated.
-      *  @param filename The name of the  LaTeX file to create.
-      *  @param outmessage Pointer to a pointer to receive any error
-      *    messages for any errors that might occur.
+      * ## Parameters:
+      * - filename The name of the  LaTeX file to create.
       */
     pub fn CreateLaTeXTimetable(&mut self,filename: &str) 
             -> Result<(),CreateLaTeXError> {
@@ -2434,4 +2444,122 @@ mod tests {
     //                .expect("Failed");
     //    temp.CreateLaTeXTimetable("examples/LJandBS.tex").expect("Failed");
     //}
+    #[test]
+    fn TimeTableSystem_new () {
+        let temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        assert_eq!(temp,TimeTableSystem {name: String::from("Test table"),
+                                        filepath: PathBuf::new(), 
+                                        timescale: 1440, timeinterval: 15,
+                                        stations: Vec::new(), 
+                                        cabs: HashMap::new(), 
+                                        trains: HashMap::new(), 
+                                        notes: Vec::new(), 
+                                        print_options: HashMap::new(), 
+                                        table_of_contents_p: true, 
+                                        direction_name: String::new() })
+    }
+    #[test]
+    fn TimeTableSystem_AddStation () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        assert_eq!(temp.AddStation(String::from("CWC Station"),0.0),Some(0));
+    }
+    #[test]
+    fn TimeTableSystem_FindStationByName () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddStation(String::from("CWC Station"),0.0);
+        assert_eq!(temp.FindStationByName(String::from("CWC Station")),Some(0));
+    }
+    #[test]
+    fn TimeTableSystem_NumberOfStations () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddStation(String::from("CWC Station"),0.0);
+        assert_eq!(temp.NumberOfStations(),1);
+    }
+    #[test] 
+    fn TimeTableSystem_IthStation () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddStation(String::from("CWC Station"),0.0);
+        assert_eq!(temp.IthStation(0),Some(&Station::new(String::from("CWC Station"),0.0)));
+    }
+    #[test] 
+    fn TimeTableSystem_StationName () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddStation(String::from("CWC Station"),0.0);
+        assert_eq!(temp.StationName(0),Some(String::from("CWC Station")));
+    }
+    #[test] 
+    fn TimeTableSystem_SMile () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddStation(String::from("CWC Station"),0.0);
+        assert_eq!(temp.SMile(0),Some(0.0));
+    }
+    #[test]
+    fn TimeTableSystem_TotalLength () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddStation(String::from("CWC Station"),0.0);
+        temp.AddStation(String::from("Bench Station"),5.0);
+        assert_eq!(temp.TotalLength(),5.0);
+    }
+    #[test]
+    fn TimeTableSystem_DuplicateStationIndex () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddStation(String::from("CWC Station"),0.0);
+        assert_eq!(temp.DuplicateStationIndex(0),None);
+    }
+    #[test]
+    fn TimeTableSystem_SetDuplicateStationIndex () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddStation(String::from("CWC Station West"),0.0);
+        temp.AddStation(String::from("Bench Station"),5.0);
+        temp.AddStation(String::from("CWC Station East"),10.0);
+        temp.SetDuplicateStationIndex(0,2);
+        temp.SetDuplicateStationIndex(2,0);
+        assert_eq!(temp.DuplicateStationIndex(0),Some(2));
+        assert_eq!(temp.DuplicateStationIndex(2),Some(0));
+    }
+    #[test]
+    fn TimeTableSystem_AddStorageTrack () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddStation(String::from("CWC Station"),0.0);
+        assert_eq!(temp.AddStorageTrack(0,&String::from("Track 1")),
+                    Some(&mut StorageTrack::new(String::from("Track 1"))));
+    }
+    #[test] 
+    fn TimeTableSystem_FindStorageTrack () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddStation(String::from("CWC Station"),0.0);
+        temp.AddStorageTrack(0,&String::from("Track 1"));
+        assert_eq!(temp.FindStorageTrack(0,&String::from("Track 1")),
+                    Some(&StorageTrack::new(String::from("Track 1"))));
+    }
+    #[test] 
+    fn TimeTableSystem_AddCab () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        assert_eq!(temp.AddCab(String::from("Blue"),String::from("blue")),
+                    &Cab::new(String::from("Blue"),String::from("blue")));
+    }
+    #[test] 
+    fn TimeTableSystem_FindCab () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddCab(String::from("Blue"),String::from("blue"));
+        assert_eq!(temp.FindCab(&String::from("Blue")),
+                    Some(&Cab::new(String::from("Blue"),String::from("blue"))));
+    }
+    #[test] 
+    fn TimeTableSystem_NumberOfCabs () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddCab(String::from("Blue"),String::from("blue"));
+        assert_eq!(temp.NumberOfCabs(),1);
+    }
+    #[test]
+    fn TimeTableSystem_AddTrain () {
+        let mut temp = TimeTableSystem::new(String::from("Test table"),1440,15);
+        temp.AddStation(String::from("CWC Station West"),0.0);
+        temp.AddStation(String::from("Bench Station"),5.0);
+        temp.AddStation(String::from("CWC Station East"),10.0);
+        assert_eq!(temp.AddTrain(String::from("Test Train"),String::from("T1"),
+                                60,1,6*60,0,2),
+                    Ok(&Train::new(String::from("Test Train"),
+                                    String::from("T1"),60,1,6*60,0.0,0,2)));
+    }
 }

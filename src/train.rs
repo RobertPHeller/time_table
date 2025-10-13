@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:30
-//  Last Modified : <251011.1110>
+//  Last Modified : <251013.1120>
 //
 //  Description	
 //
@@ -42,7 +42,6 @@
 //! The train class implements a running train and lists the stations it passes
 //! (and possibly stops at).
 //!
-//! @author Robert Heller \<heller\@deepsoft.com\>
 //!
 
 use crate::cab::*;
@@ -55,7 +54,7 @@ use std::fs::File;
 use crate::primio::*;
 
 
-/** @brief Type of stop.  
+/** Type of stop.  
   *
   * Origin for originating trains, Terminate for
   * terminating trains, and Transit for trains passing through.
@@ -105,13 +104,12 @@ impl StopFlagType {
         }
     }
 }
-/** @brief This class implements a stop.
+/** This class implements a stop.
   *
   * This specifies the station the train goes
   * through, even if it does not actually stop.  A layover of 0 means the train
   * does not stop and this station is a timekeeping check point.
   *
-  * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 #[derive(Debug, PartialEq, Clone)]
@@ -198,10 +196,10 @@ impl FromStr for Stop {
 }
 
 impl Stop {
-    /** @brief Constructor: create a new stop.
-      *
-      *  @param stationindex_ The index of the station.
-      *  @param flag_ The type of stop (originating, terminating, or
+    /** Constructor: create a new stop.
+      * ## Parameters:
+      * - stationindex_ The index of the station.
+      * - flag_ The type of stop (originating, terminating, or
       *    passing through).
       */
     pub fn new(stationindex_: usize,flag_: StopFlagType) -> Self {
@@ -217,7 +215,7 @@ impl Stop {
       * - period New layover period.
       */
     pub fn SetLayover(&mut self,period: f64) {self.layover = period;}
-    /** @brief Return departure time.  
+    /** Return departure time.  
       *
       * This is just the layover period added to
       * the arrival time.
@@ -487,12 +485,11 @@ impl Stop {
   */
 pub type StopVector = Vec<Stop>;
 
-/** @brief This class implements a train.
+/** This class implements a train.
   *
   * A train travels down the track passing or
   * stoping at stations along the way.
   *
-  * @author Robert Heller \<heller\@deepsoft.com\>
   *
   */
 #[derive(Debug, PartialEq, Clone)]
@@ -636,7 +633,8 @@ impl Train {
       */
     pub fn Departure(&self) -> u32 {self.departure}
     /** Update departure time.
-      *  @param depart The new departure time.
+      * ## Parameters:
+      * - depart The new departure time.
       */
     pub fn SetDeparture(&mut self,depart: u32) {self.departure = depart;}
     /** Return the train's speed.
@@ -648,16 +646,18 @@ impl Train {
     /** Number of notes.
       */
     pub fn NumberOfNotes(&self) -> usize {self.notes.len()}
-    /** @brief Return the ith note.  
+    /** Return the ith note.  
       *
       * Returns -1 if the index is out of range.
-      *  @param i The index of the note.
+      * ## Parameters:
+      * - i The index of the note.
       */
     pub fn Note(&self, i: usize) -> Option<&usize> {
         self.notes.get(i)
     }
     /** Add a note.
-      *   @param note The note number to add.
+      * ## Parameters:
+      * - note The note number to add.
       */
     pub fn  AddNoteToTrain(&mut self,note: usize) {
         for n in self.notes.iter() {
@@ -666,7 +666,8 @@ impl Train {
         self.notes.push(note);
     }
     /** Remove a note.
-      *   @param note The note number to remove.
+      * ## Parameters:
+      * - note The note number to remove.
       */
     pub fn RemoveNoteFromTrain(&mut self,note: usize) {
         for i in 0..self.notes.len() {
@@ -683,8 +684,9 @@ impl Train {
         self.notes.iter_mut()
     }
     /** Update stop layover.
-      *  @param istop The stop number to update.
-      *  @param layover The new layover time.
+      * ## Parameters:
+      * - istop The stop number to update.
+      * - layover The new layover time.
       */
     pub fn UpdateStopLayover(&mut self,istop: usize,layover: f64) {
         match self.stops.get_mut(istop) {
@@ -693,8 +695,9 @@ impl Train {
         };
     }
     /** Update the cab.
-      *  @param istop The stop number to update.
-      *  @param cab The new cab.
+      * ## Parameters:
+      * - istop The stop number to update.
+      * - cab The new cab.
       */
     pub fn UpdateStopCab(&mut self,istop: usize,cab: Option<&Cab>) {
         match self.stops.get_mut(istop) {
@@ -703,8 +706,9 @@ impl Train {
         };
     }
     /** Add a note to a stop.
-      *  @param istop The stop number to update.
-      *  @param note The note to add.
+      * ## Parameters:
+      * - istop The stop number to update.
+      * - note The note to add.
       */
     pub fn AddNoteToStop(&mut self,istop: usize,note: usize) {
         match self.stops.get_mut(istop) {
@@ -713,8 +717,9 @@ impl Train {
         };
     }
     /** Remove a note from a stop.
-      *  @param istop The stop number to update.
-      *  @param note The note to remove.
+      * ## Parameters:
+      * - istop The stop number to update.
+      * - note The note to remove.
       */
     pub fn RemoveNoteFromStop(&mut self,istop: usize,note: usize) {
         match self.stops.get_mut(istop) {
@@ -723,7 +728,8 @@ impl Train {
         };
     }
     /** Set the origin storage track.
-      *  @param trackname The originating storage track name.
+      * ## Parameters:
+      * - trackname The originating storage track name.
       */
     pub fn SetOriginStorageTrack(&mut self,trackname: String) {
         match self.stops.get_mut(0) {
@@ -732,7 +738,8 @@ impl Train {
         };
     }
     /** Set the destination storage track.
-      *  @param trackname The terminating storage track name.
+      * ## Parameters:
+      * - trackname The terminating storage track name.
       */
     pub fn SetDestinationStorageTrack(&mut self,trackname: String) {
         let last = self.stops.len()-1;
@@ -742,8 +749,9 @@ impl Train {
         };
     }
     /** Set an intermediate storage track.
-      *  @param istop The stop index.
-      *  @param trackname The intermediate storage track name.
+      * ## Parameters:
+      * - istop The stop index.
+      * - trackname The intermediate storage track name.
       */
     pub fn SetTransitStorageTrack(&mut self,istop: usize,trackname: String) {
         match self.stops.get_mut(istop) {
@@ -756,7 +764,8 @@ impl Train {
     pub fn NumberOfStops(&self) -> usize {self.stops.len()}
     /** Return the ith stop object.  Returns NULL if the index is out of
       * range.
-      *  @param i The index of the stop.
+      * ## Parameters:
+      * - i The index of the stop.
       */
     pub fn StopI(&self,i: usize) -> Option<&Stop>  {
         self.stops.get(i)
