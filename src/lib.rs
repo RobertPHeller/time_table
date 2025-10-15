@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251015.1042>
+//  Last Modified : <251015.1251>
 //
 //  Description	
 //
@@ -1667,6 +1667,8 @@ impl TimeTableSystem {
                     None => "",
                     Some(s) => s,
                 };
+                forwardTrains.sort_unstable_by(|a, b| a.DepartureCompare(b));
+                backwardTrains.sort_unstable_by(|a, b| a.DepartureCompare(b)); 
                 self.MakeTimeTableOneTable(&mut fp,&allTrains,&forwardTrains,
                                             &backwardTrains,header,
                                             sectionTOP)?;
@@ -1750,6 +1752,8 @@ impl TimeTableSystem {
                 Some(s) => s,
             };
             // Call helper method to generate the table.
+            fcl.sort_unstable_by(|a, b| a.DepartureCompare(b));
+            bcl.sort_unstable_by(|a, b| a.DepartureCompare(b)); 
             self.MakeTimeTableOneTable(fp,&acl,&fcl,&bcl,
                                        classHeader.as_str(),sectionTOP)?;
         }
@@ -1839,6 +1843,8 @@ impl TimeTableSystem {
                 backwardTrains.remove(*indx);
             }
             // Print out this group of trains.
+            fcl.sort_unstable_by(|a, b| a.DepartureCompare(b));
+            bcl.sort_unstable_by(|a, b| a.DepartureCompare(b)); 
             self.MakeTimeTableOneTable(fp,&acl,&fcl,&bcl,&classHeader,sectionTOP)?;
             igroup += 1;
         }

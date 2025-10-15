@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 16:27:30
-//  Last Modified : <251013.1120>
+//  Last Modified : <251015.1251>
 //
 //  Description	
 //
@@ -51,6 +51,7 @@ use std::collections::HashMap;
 use std::slice::{Iter,IterMut};
 use std::io::{Write,BufWriter,BufReader,Read,Error,ErrorKind};
 use std::fs::File;
+use std::cmp::Ordering;
 use crate::primio::*;
 
 
@@ -637,6 +638,9 @@ impl Train {
       * - depart The new departure time.
       */
     pub fn SetDeparture(&mut self,depart: u32) {self.departure = depart;}
+    pub fn DepartureCompare(&self, other: &Self) -> Ordering {
+        self.departure.cmp(&other.departure)
+    }
     /** Return the train's speed.
       */
     pub fn Speed(&self) -> u32 {self.speed}
