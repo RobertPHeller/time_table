@@ -1,6 +1,6 @@
 [package]
 name = "time_table"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 authors = ["Robert Heller <heller@deepsoft.com>"]
 license = "GPL-2.0-only"

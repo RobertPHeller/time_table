@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-14 16:15:25
-//  Last Modified : <251014.1642>
+//  Last Modified : <251015.1045>
 //
 //  Description	
 //
@@ -47,17 +47,17 @@ fn InsertStations(time_table: &mut TimeTableSystem) {
 }
 
 fn InsertSouthboundTrains(time_table: &mut TimeTableSystem) {
-    time_table.AddTrain(String::from("Valley Flyer"),String::from("425"),60,1,
-                        6*60+5,0,3).expect("Failed to insert 425");
     time_table.AddTrain(String::from("Valley Flyer"),String::from("479"),60,1,
                         18*60+5,0,3).expect("Failed to insert 479");
+    time_table.AddTrain(String::from("Valley Flyer"),String::from("425"),60,1,
+                        6*60+5,0,3).expect("Failed to insert 425");
 }
 
 fn InsertNorthboundTrains(time_table: &mut TimeTableSystem) {
+    time_table.AddTrain(String::from("Valley Flyer"),String::from("494"),60,1,
+                        21*60+25,3,0).expect("Failed to insert 494");
     time_table.AddTrain(String::from("Valley Flyer"),String::from("486"),60,1,
                         15*60+15,3,0).expect("Failed to insert 486");
-    time_table.AddTrain(String::from("Valley Flyer"),String::from("479"),60,1,
-                        21*60+25,3,0).expect("Failed to insert 494");
 }
 
 
@@ -68,8 +68,12 @@ fn main() {
     let mut valley_flyer = TimeTableSystem::new(String::from("Northern NE"),
                                                 1440,15);
     InsertStations(&mut valley_flyer);
+    println!("Number of Stations: {}",valley_flyer.NumberOfStations());
     InsertSouthboundTrains(&mut valley_flyer);
+    println!("Number of trains after InsertSouthboundTrains: {}",valley_flyer.NumberOfTrains());
     InsertNorthboundTrains(&mut valley_flyer);
+    println!("Number of trains after InsertNorthboundTrains: {}",valley_flyer.NumberOfTrains());
+    valley_flyer.SetPrintOption("DirectionName","Southbound");
     valley_flyer.CreateLaTeXTimetable("ValleyFlyer.tex")
                     .expect("Failed to create time table LaTeX file");
 }

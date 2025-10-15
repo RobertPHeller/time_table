@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251013.1254>
+//  Last Modified : <251015.1042>
 //
 //  Description	
 //
@@ -2078,12 +2078,12 @@ impl TimeTableSystem {
             let number = train.Number();
             let name   = train.Name();
             let classnumer = train.ClassNumber();
-            write!(fp,"&{}parbox{{{}timecolumnwidth}}{{{}{}{}{}{}{}{}}}",
+            write!(fp,"{}parbox{{{}timecolumnwidth}}{{{}{}{}{}{}{}{}}}&",
                     Self::BACKSLASH,Self::BACKSLASH,number,
                     Self::BACKSLASH,Self::BACKSLASH,name,
                     Self::BACKSLASH,Self::BACKSLASH,classnumer)?;
         }
-        write!(fp,"&{}parbox{{{}timecolumnwidth}}{{Train number:{}{}name:{}{}class:}}",
+        write!(fp,"{}parbox{{{}timecolumnwidth}}{{Train number:{}{}name:{}{}class:}}&",
                 Self::BACKSLASH,Self::BACKSLASH,
                 Self::BACKSLASH,Self::BACKSLASH,
                 Self::BACKSLASH,Self::BACKSLASH)?;
@@ -2099,15 +2099,15 @@ impl TimeTableSystem {
         writeln!(fp,"{}{}",Self::BACKSLASH,Self::BACKSLASH)?;
         writeln!(fp,"{}hline",Self::BACKSLASH)?;
         for train in forwardTrains.iter() {
-            write!(fp,"&{}parbox{{{}timecolumnwidth}}{{",
+            write!(fp,"{}parbox{{{}timecolumnwidth}}{{",
                     Self::BACKSLASH,Self::BACKSLASH)?;
             let numnotes = train.NumberOfNotes();
             for inote in 0..numnotes {
                 write!(fp,"{} ",train.Note(inote).unwrap())?;
             }
-            write!(fp,"}}")?;
+            write!(fp,"}}&")?;
         }
-        write!(fp,"&Notes:")?;
+        write!(fp,"Notes:&")?;
         for train in backwardsTrains.iter() {
             write!(fp,"&{}parbox{{{}timecolumnwidth}}{{",
                     Self::BACKSLASH,Self::BACKSLASH)?;
@@ -2163,9 +2163,10 @@ impl TimeTableSystem {
                 match tasB.unwrap().get(&train.Number()) {
                     Some(st) => {
                         if st.Flag() != StopFlagType::Terminate {
-                            write!(fp,"{}shtime{{{}}}",Self::BACKSLASH,
+                            write!(fp,"&{}shtime{{{}}}",Self::BACKSLASH,
                                     (st.Departure()+0.5) as u32)?;
                         } else {
+                            write!(fp,"&")?;
                             let destStop = train.StopI(train.NumberOfStops()-1).unwrap();
                             let strack = destStop.StorageTrackName();
                             if strack.len() > 0 {write!(fp,"Tr {}",strack)?;}
