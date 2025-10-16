@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-03 15:59:04
-//  Last Modified : <251015.1251>
+//  Last Modified : <251015.2005>
 //
 //  Description	
 //
@@ -38,19 +38,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-//! ## Model Railroad Time Table generating program
-//! The Time Table library is a port of the Time Table V2 program that is part of
-//! the Model  Railroad  System.  That  program is partly in C++  (low-level  data
-//! structures) and part in Tcl/Tk (GUI main program).  This is mostly just a port
-//! of the C++ code. This  program  was  inspired by chapter 8 of the book _How to
-//! Operate Your Model Railroad_ by Bruce A. Chubb.  I strongly  recommend reading
-//! this chapter  fully before using this  program.  This program  implements  the
-//! methods described in this chapter, in an automated fashion. 
-//!
-//! The time tables this library creates are LaTeX source.  You will need to 
-//! install the LaTeX system to process the LaTeX source into a PDF file that
-//! can then be printed.
-
+#![doc = include_str!("../README.md")]
 
 pub mod station;
 pub mod cab;
@@ -1442,6 +1430,12 @@ impl TimeTableSystem {
       * This method create a LaTeX source file from
       * the information in the time table structure.  It access various
       * print options to control how the LaTeX file is generated.
+      *
+      * The LaTeX file generated depends on a LaTeX style file named 
+      * `TimeTable.sty` (there is a version of this file in the `src/latex` 
+      * directory).  This file needs to be in the same directory as the 
+      * generated LaTeX file this method generates.
+      *
       * ## Parameters:
       * - filename The name of the  LaTeX file to create.
       */

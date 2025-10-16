@@ -11,3 +11,12 @@ The time tables this library creates are LaTeX source.  You will need to
 install the LaTeX system to process the LaTeX source into a PDF file that 
 can then be printed.   
 
+There are two example programs.  One loads the time table for the fantasy model
+railroad I have wanted to build but never managed to.  The other is a a time 
+table I created to test center station (bi-directional) table generation.
+
+- [Library Junction and Bench Station](https://github.com/RobertPHeller/time_table/tree/main/examples/LJandBS)
+This is my fantasy model railroad.
+- [Valley Flyer](https://github.com/RobertPHeller/time_table/tree/main/examples/ValleyFlyer)
+This is the "real" weekend Amtrak Valley Flyer schedule between  Greenfield,
+MA and Springfield, MA.

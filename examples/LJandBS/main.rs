@@ -1,4 +1,4 @@
-// -!- rust -!- //////////////////////////////////////////////////////////////
+// -!- rust -!- *************************************************************
 //
 //  System        : 
 //  Module        : 
@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : 2025-10-12 09:33:24
-//  Last Modified : <251012.0944>
+//  Last Modified : <251015.2047>
 //
 //  Description	
 //
@@ -16,7 +16,7 @@
 //
 //  History
 //	
-/////////////////////////////////////////////////////////////////////////////
+//***************************************************************************
 //    Copyright (C) 2025  Robert Heller D/B/A Deepwoods Software
 //			51 Locke Hill Road
 //			Wendell, MA 01379-9728
@@ -36,9 +36,13 @@
 //    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 // 
 //
-//////////////////////////////////////////////////////////////////////////////
+//***************************************************************************
+
+#![doc = include_str!("README.md")]
+
 use time_table::TimeTableSystem;
 
+/// Main program
 fn main() {
     let mut lj_and_bs = TimeTableSystem::old("LJandBS.tt")
                             .expect("Failed to open time table file");
